@@ -11,7 +11,7 @@ else:
         from e2efs import optimizers_tf2 as custom_optimizers
     else:
         from e2efs import optimizers_tf29 as custom_optimizers
-    from e2efs import e2efs_layers_tf2 as e2efs_layers_layers
+    from e2efs import e2efs_layers_tf2 as e2efs_layers
 
 
 class E2EFSBase:
