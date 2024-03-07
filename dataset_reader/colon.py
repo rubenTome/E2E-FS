@@ -2,15 +2,21 @@ import numpy as np
 from scipy.special import erf
 from scipy.io import loadmat
 import os
+from fxpmath import Fxp
 
 
 data_filename = 'colon.mat'
+TEMPLATE = Fxp(None, True, 32, 16)
 
 def load_dataset(directory=None):
     directory = (os.path.dirname(os.path.realpath(__file__)) + '/../datasets' if directory is None else directory) + '/colon/'
     dataset = load_data(directory)
     return dataset
 
+def load_dataset_pr(directory=None):
+    directory = (os.path.dirname(os.path.realpath(__file__)) + '/../datasets' if directory is None else directory) + '/colon/'
+    dataset = load_data_pr(directory)
+    return dataset
 
 def load_data(directory):
     info = {
@@ -26,6 +32,19 @@ def load_data(directory):
 
     return info
 
+def load_data_pr(directory):
+    info = {
+    'raw': {}
+    }
+
+    mat = loadmat(directory + data_filename)
+
+    with open(directory + data_filename) as f:
+        info['raw']['data'] = Fxp(np.asarray(mat['data']).T).like(TEMPLATE)
+        info['raw']['label'] = Fxp(np.asarray(mat['labels']).astype(int)).like(TEMPLATE)
+        info['raw']['label'][info['raw']['label'] == 2] = Fxp(0).like(TEMPLATE)
+        
+    return info
 
 class Normalize:
 
