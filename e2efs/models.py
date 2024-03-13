@@ -17,7 +17,7 @@ else:
 class E2EFSBase:
 
     def __init__(self, th=0.1):
-        self.th = th
+        self.th = K.cast_to_floatx(th)
         self.model = None
         self.e2efs_layer = None
 
@@ -126,6 +126,11 @@ class E2EFSSoft(E2EFSBase):
         return e2efs_layers.E2EFSSoft(self.n_features_to_select, T=self.T, warmup_T=self.warmup_T, decay_factor=1. - self.rho,
                                alpha_N=self.alpha_M, epsilon=self.epsilon, input_shape=input_shape)
     
+class E2EFSSoft_RP(E2EFSSoft):
+    
+    def __init__(self, n_features_to_select, rho=0.25, T=10000, warmup_T=2000, th=.1, alpha_M=.99, epsilon=.001):
+        K.set_floatx('float16')
+        super(E2EFSSoft_RP, self).__init__(n_features_to_select, rho, T, warmup_T, th, alpha_M, epsilon)
 
 class E2EFS(E2EFSSoft):
 

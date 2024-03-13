@@ -95,14 +95,14 @@ class E2EFSSoft(E2EFS_Base):
         if 'input_shape' not in kwargs and 'input_dim' in kwargs:
             kwargs['input_shape'] = (kwargs.pop('input_dim'),)
 
-        self.dropout = dropout
-        self.decay_factor = decay_factor
-        self.T = T
-        self.warmup_T = warmup_T
-        self.start_alpha = start_alpha
-        self.cont_T = 0
-        self.alpha_M = alpha_N
-        self.epsilon = epsilon
+        self.dropout = K.cast_to_floatx(dropout)
+        self.decay_factor = K.cast_to_floatx(decay_factor)
+        self.T = K.cast_to_floatx(T)
+        self.warmup_T = K.cast_to_floatx(warmup_T)
+        self.start_alpha = K.cast_to_floatx(start_alpha)
+        self.cont_T = K.cast_to_floatx(0)
+        self.alpha_M = K.cast_to_floatx(alpha_N)
+        self.epsilon = K.cast_to_floatx(epsilon)
         super(E2EFSSoft, self).__init__(units=units,
                                         kernel_regularizer=kernel_regularizer,
                                         kernel_initializer=kernel_initializer,
@@ -154,7 +154,7 @@ class E2EFSSoft(E2EFS_Base):
             moving_units = K.switch(K.less_equal(m, self.units), m,
                                     (1. - self.moving_decay) * self.moving_units)
             epsilon_minus = 0.
-            epsilon_plus = K.switch(K.less_equal(m, self.units), self.moving_units, 0.)
+            epsilon_plus = K.switch(K.less_equal(m, self.units), self.moving_units, K.cast_to_floatx(0.))
             return K.relu(moving_units - sum_x - epsilon_minus) + K.relu(sum_x - moving_units - epsilon_plus)
 
         # self.kernel_regularizer = lambda x: regularizers.l2(.01)(K.relu(x))
@@ -184,7 +184,7 @@ class E2EFSSoft(E2EFS_Base):
         self.moving_T.assign_add(1.)
         self.moving_decay.assign(
             K.switch(K.less(self.moving_factor, self.alpha_M), self.moving_decay,
-                     K.maximum(.75, self.moving_decay + self.epsilon))
+                     K.maximum(K.cast_to_floatx(.75), self.moving_decay + self.epsilon))
         )
 
 
