@@ -32,7 +32,7 @@ class E2EFSBase:
             opt = custom_optimizers.E2EFS_SGD(self.e2efs_layer, th=self.th, **kwargs)
         elif 'adam' in type(model.optimizer).__name__.lower():
             opt = custom_optimizers.E2EFS_Adam(self.e2efs_layer, th=self.th, **kwargs)
-        elif 'RMSprop' in type(model.optimizer).__name__.lower():
+        elif 'rmsprop' in type(model.optimizer).__name__.lower():
             opt = custom_optimizers.E2EFS_RMSprop(self.e2efs_layer, th=self.th, **kwargs)
         else:
             raise Exception('Optimizer not supported. Contact the authors if you need it')
