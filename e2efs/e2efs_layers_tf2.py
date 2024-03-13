@@ -221,13 +221,13 @@ class E2EFSRanking(E2EFS_Base):
         if 'input_shape' not in kwargs and 'input_dim' in kwargs:
             kwargs['input_shape'] = (kwargs.pop('input_dim'),)
 
-        self.dropout = dropout
-        self.T = T
-        self.warmup_T = warmup_T
-        self.start_alpha = start_alpha
-        self.cont_T = 0
-        self.speedup = speedup
-        self.alpha_M = alpha_M
+        self.dropout = K.cast_to_floatx(dropout)
+        self.T = K.cast_to_floatx(T)
+        self.warmup_T = K.cast_to_floatx(warmup_T)
+        self.start_alpha = K.cast_to_floatx(start_alpha)
+        self.cont_T = K.cast_to_floatx(0)
+        self.speedup = K.cast_to_floatx(speedup)
+        self.alpha_M = K.cast_to_floatx(alpha_M)
         super(E2EFSRanking, self).__init__(units=units,
                                         kernel_regularizer=kernel_regularizer,
                                         kernel_initializer=kernel_initializer,

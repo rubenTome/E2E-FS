@@ -138,6 +138,11 @@ class E2EFS(E2EFSSoft):
         rho=1.
         super(E2EFS, self).__init__(n_features_to_select, rho, T, warmup_T, th, alpha_M, epsilon)
 
+class E2EFS_RP(E2EFS):
+
+    def __init__(self, n_features_to_select, T=10000, warmup_T=2000, th=.1, alpha_M=.99, epsilon=.001):
+        K.set_floatx('float16')
+        super(E2EFS_RP, self).__init__(n_features_to_select, T, warmup_T, th, alpha_M, epsilon)
 
 class E2EFSRanking(E2EFSBase):
 
@@ -148,6 +153,12 @@ class E2EFSRanking(E2EFSBase):
         self.alpha_M = alpha_M
         self.tau = tau
         super(E2EFSRanking, self).__init__(th)
+
+class E2EFSRanking_RP(E2EFSRanking):
+
+    def __init__(self, T=20000, warmup_T=2000, th=.1, alpha_M=.99, tau=4.):
+        K.set_floatx('float16')
+        super(E2EFSRanking_RP, self).__init__(T, warmup_T, th, alpha_M, tau)
 
     def get_layer(self, input_shape):
         return e2efs_layers.E2EFSRanking(self.n_features_to_select, speedup=self.tau, input_shape=input_shape)
