@@ -9,7 +9,8 @@ from src.layers.dfs import DFS
 import numpy as np
 import tempfile
 import os
-
+from tensorflow import keras
+import tensorflow_model_optimization as tfmot
 
 def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
                    dropout=0.0, dfs=False, regularization=5e-4, momentum=0.9):
@@ -30,7 +31,22 @@ def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_norm
 
     return model
 
-
+def model_mnist(input_shape=(28, 28, 1), num_classes=10, quantized=True):
+    model = keras.Sequential([
+        keras.Input(shape=input_shape),
+        layers.Conv2D(32, kernel_size=(3, 3), activation="relu"),
+        layers.MaxPooling2D(pool_size=(2, 2)),
+        layers.Conv2D(64, kernel_size=(3, 3), activation="relu"),
+        layers.MaxPooling2D(pool_size=(2, 2)),
+        layers.Flatten(),
+        layers.Dropout(0.5),
+        layers.Dense(num_classes, activation="softmax"),
+    ])
+    if quantized:
+        model = tfmot.quantization.keras.quantize_model(model)
+    optimizer = optimizers.SGD(learning_rate=1e-1)
+    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
+    return model
 
 def wrn164(
     input_shape, nclasses=2, bn=True, kernel_initializer='he_normal', dropout=0.0, dfs=False, regularization=0.0,
