@@ -21,7 +21,7 @@ class E2EFS_Base(layers.Layer):
         self.kernel_regularizer = kernel_regularizer
         self.supports_masking = True
         self.kernel = None
-        self.heatmap_momentum = heatmap_momentum
+        self.heatmap_momentum = K.cast_to_floatx(heatmap_momentum)
 
     def build(self, input_shape):
         assert len(input_shape) >= 2

@@ -5,6 +5,11 @@ from keras import optimizers
 from e2efs import models
 from src.wrn.network_models import wrn164, three_layer_nn
 import numpy as np
+from codecarbon import EmissionsTracker
+import time
+time1 = time.time()
+tracker = EmissionsTracker()
+tracker.start()
 
 
 if __name__ == '__main__':
@@ -51,4 +56,6 @@ if __name__ == '__main__':
     print('FEATURE_RANKING :', fs_class.get_ranking())
     print('ACCURACY : ', fs_class.get_model().evaluate(x_test, y_test, batch_size=128)[-1])
     print('FEATURE_MASK NNZ :', np.count_nonzero(fs_class.get_mask()))
+    print("EXECUTION TIME: ", time.time() - time1)
 
+tracker.stop()

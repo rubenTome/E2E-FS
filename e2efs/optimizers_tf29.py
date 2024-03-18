@@ -78,7 +78,7 @@ class E2EFS_SGD(optimizers.SGD):
         self.epsilon = K.epsilon()
         self.amsgrad = amsgrad
         self.e2efs_layer = e2efs_layer
-        self.th = th
+        self.th = K.cast_to_floatx(th)
 
     def _create_slots(self, var_list):
         # Create slots for the first and second moments.
@@ -144,13 +144,13 @@ class E2EFS_Adam(optimizers.Adam):
     def __init__(self, e2efs_layer, th=.1, e2efs_lr=0.01, beta_1=0.5, beta_2=0.999,
                  amsgrad=False, **kwargs):
         super(E2EFS_Adam, self).__init__(**kwargs)
-        self._set_hyper('e2efs_lr', e2efs_lr)
-        self._set_hyper('e2efs_beta_1', beta_1)
-        self._set_hyper('e2efs_beta_2', beta_2)
+        self._set_hyper('e2efs_lr', K.cast_to_floatx(e2efs_lr))
+        self._set_hyper('e2efs_beta_1', K.cast_to_floatx(beta_1))
+        self._set_hyper('e2efs_beta_2', K.cast_to_floatx(beta_2))
         self.epsilon = K.epsilon()
         self.amsgrad = amsgrad
         self.e2efs_layer = e2efs_layer
-        self.th = th
+        self.th = K.cast_to_floatx(th)
 
     def _create_slots(self, var_list):
         # Create slots for the first and second moments.
@@ -216,13 +216,13 @@ class E2EFS_RMSprop(optimizers.RMSprop):
     def __init__(self, e2efs_layer, th=.1, e2efs_lr=0.01, beta_1=0.5, beta_2=0.999,
                  amsgrad=False, **kwargs):
         super(E2EFS_RMSprop, self).__init__(**kwargs)
-        self._set_hyper('e2efs_lr', e2efs_lr)
-        self._set_hyper('e2efs_beta_1', beta_1)
-        self._set_hyper('e2efs_beta_2', beta_2)
+        self._set_hyper('e2efs_lr', K.cast_to_floatx(e2efs_lr))
+        self._set_hyper('e2efs_beta_1', K.cast_to_floatx(beta_1))
+        self._set_hyper('e2efs_beta_2', K.cast_to_floatx(beta_2))
         self.epsilon = K.epsilon()
         self.amsgrad = amsgrad
         self.e2efs_layer = e2efs_layer
-        self.th = th
+        self.th = K.cast_to_floatx(th)
 
     def _create_slots(self, var_list):
         # Create slots for the first and second moments.

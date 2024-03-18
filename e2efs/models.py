@@ -114,12 +114,12 @@ class E2EFSBase:
 class E2EFSSoft(E2EFSBase):
     
     def __init__(self, n_features_to_select, rho=0.25, T=10000, warmup_T=2000, th=.1, alpha_M=.99, epsilon=.001):
-        self.n_features_to_select = n_features_to_select
-        self.rho = rho
-        self.T = T
-        self.warmup_T = warmup_T
-        self.alpha_M = alpha_M
-        self.epsilon = epsilon
+        self.n_features_to_select = K.cast_to_floatx(n_features_to_select)
+        self.rho = K.cast_to_floatx(rho)
+        self.T = K.cast_to_floatx(T)
+        self.warmup_T = K.cast_to_floatx(warmup_T)
+        self.alpha_M = K.cast_to_floatx(alpha_M)
+        self.epsilon = K.cast_to_floatx(epsilon)
         super(E2EFSSoft, self).__init__(th)
 
     def get_layer(self, input_shape):
@@ -147,19 +147,18 @@ class E2EFS_RP(E2EFS):
 class E2EFSRanking(E2EFSBase):
 
     def __init__(self, T=20000, warmup_T=2000, th=.1, alpha_M=.99, tau=4.):
-        self.n_features_to_select = 1
-        self.T = T
-        self.warmup_T = warmup_T
-        self.alpha_M = alpha_M
-        self.tau = tau
+        self.n_features_to_select = K.cast_to_floatx(1)
+        self.T = K.cast_to_floatx(T)
+        self.warmup_T = K.cast_to_floatx(warmup_T)
+        self.alpha_M = K.cast_to_floatx(alpha_M)
+        self.tau = K.cast_to_floatx(tau)
         super(E2EFSRanking, self).__init__(th)
+
+    def get_layer(self, input_shape):
+        return e2efs_layers.E2EFSRanking(self.n_features_to_select, speedup=self.tau, input_shape=input_shape)
 
 class E2EFSRanking_RP(E2EFSRanking):
 
     def __init__(self, T=20000, warmup_T=2000, th=.1, alpha_M=.99, tau=4.):
         K.set_floatx('float16')
         super(E2EFSRanking_RP, self).__init__(T, warmup_T, th, alpha_M, tau)
-
-    def get_layer(self, input_shape):
-        return e2efs_layers.E2EFSRanking(self.n_features_to_select, speedup=self.tau, input_shape=input_shape)
-
