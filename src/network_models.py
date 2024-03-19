@@ -29,7 +29,10 @@ def fcnn(nfeatures, nclasses=2, layer_dims=None, bn=True, kernel_initializer='he
               kernel_regularizer=l2(regularization) if regularization > 0.0 else None)(x)
     output = layers.Activation('softmax')(x)
 
-    model = tfmot.quantization.keras.quantize_model(Model(input, output))
+    if quantized:
+        model = tfmot.quantization.keras.quantize_model(Model(input, output))
+    else:
+        model = Model(input, output)
 
     optimizer = optimizers.Adam(lr=1e-4)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
