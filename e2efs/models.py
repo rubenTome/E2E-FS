@@ -26,6 +26,7 @@ class E2EFSBase:
 
     def attach(self, model):
         self.e2efs_layer = self.get_layer(model.input_shape[1:])
+        #TODO si intento cuantizar self.model: ValueError: Quantizing a keras Model inside another keras Model is not supported.
         self.model = self.e2efs_layer.add_to_model(model, input_shape=model.input_shape[1:])
         kwargs = model.optimizer.get_config()
         if 'sgd' in type(model.optimizer).__name__.lower():
@@ -125,24 +126,12 @@ class E2EFSSoft(E2EFSBase):
     def get_layer(self, input_shape):
         return e2efs_layers.E2EFSSoft(self.n_features_to_select, T=self.T, warmup_T=self.warmup_T, decay_factor=1. - self.rho,
                                alpha_N=self.alpha_M, epsilon=self.epsilon, input_shape=input_shape)
-    
-class E2EFSSoft_RP(E2EFSSoft):
-    
-    def __init__(self, n_features_to_select, rho=0.25, T=10000, warmup_T=2000, th=.1, alpha_M=.99, epsilon=.001):
-        K.set_floatx('float16')
-        super(E2EFSSoft_RP, self).__init__(n_features_to_select, rho, T, warmup_T, th, alpha_M, epsilon)
 
 class E2EFS(E2EFSSoft):
 
     def __init__(self, n_features_to_select, T=10000, warmup_T=2000, th=.1, alpha_M=.99, epsilon=.001):
         rho=1.
         super(E2EFS, self).__init__(n_features_to_select, rho, T, warmup_T, th, alpha_M, epsilon)
-
-class E2EFS_RP(E2EFS):
-
-    def __init__(self, n_features_to_select, T=10000, warmup_T=2000, th=.1, alpha_M=.99, epsilon=.001):
-        K.set_floatx('float16')
-        super(E2EFS_RP, self).__init__(n_features_to_select, T, warmup_T, th, alpha_M, epsilon)
 
 class E2EFSRanking(E2EFSBase):
 
@@ -156,9 +145,3 @@ class E2EFSRanking(E2EFSBase):
 
     def get_layer(self, input_shape):
         return e2efs_layers.E2EFSRanking(self.n_features_to_select, speedup=self.tau, input_shape=input_shape)
-
-class E2EFSRanking_RP(E2EFSRanking):
-
-    def __init__(self, T=20000, warmup_T=2000, th=.1, alpha_M=.99, tau=4.):
-        K.set_floatx('float16')
-        super(E2EFSRanking_RP, self).__init__(T, warmup_T, th, alpha_M, tau)

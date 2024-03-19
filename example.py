@@ -1,5 +1,5 @@
 from codecarbon import EmissionsTracker
-tracker = EmissionsTracker()
+tracker = EmissionsTracker(log_level="critical")
 tracker.start()
 from keras.datasets import mnist
 from keras.callbacks import LearningRateScheduler
@@ -24,7 +24,7 @@ if __name__ == '__main__':
     model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss='categorical_crossentropy')
 
     ## LOAD E2EFS AND RUN IT
-    fs_class = models.E2EFSSoft(n_features_to_select=400).attach(model).fit(
+    fs_class = models.E2EFSSoft(n_features_to_select=39).attach(model).fit(
         x_train, y_train, batch_size=128, validation_data=(x_test, y_test), verbose=2
     )
     

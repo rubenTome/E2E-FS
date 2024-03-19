@@ -20,10 +20,14 @@ def get_gradients(self, tape, loss, var_list, grad_loss=None):
         e2efs_grad_corrected = e2efs_grad / (tf.norm(e2efs_grad) + K.epsilon())
         combined_e2efs_grad = (1. - self.e2efs_layer.moving_factor) * e2efs_grad_corrected + \
                               self.e2efs_layer.moving_factor * e2efs_regularizer_grad_corrected
+        if(K.floatx() == 'float16'):
+            epsilon = 0.000976562
+        else:
+            epsilon = K.epsilon()
         combined_e2efs_grad = K.sign(
             self.e2efs_layer.moving_factor) * K.minimum(self.th, K.max(
             K.abs(combined_e2efs_grad))) * combined_e2efs_grad / K.max(
-            K.abs(combined_e2efs_grad) + K.epsilon())
+            K.abs(combined_e2efs_grad) + epsilon)
         grads[0] = combined_e2efs_grad
         return list(zip(grads, var_list))
 
