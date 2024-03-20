@@ -10,7 +10,9 @@ from src.wrn.network_models import wrn164, three_layer_nn
 import numpy as np
 from keras import backend as K
 K.set_floatx("float16")
-
+#from keras import mixed_precision
+#precision mixta mejor que precision fija a float16
+#mixed_precision.set_global_policy('mixed_float16')
 
 if __name__ == '__main__':
 
@@ -24,7 +26,7 @@ if __name__ == '__main__':
     model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss='categorical_crossentropy')
 
     #con n_features_to_select=39 es demasiado lento (epsilon=0,000976562, th menor)
-    fs_class = models.E2EFSSoft(n_features_to_select=39, th=.0075).attach(model).fit(
+    fs_class = models.E2EFSSoft(n_features_to_select=39, th=.008).attach(model).fit(
         x_train, y_train, batch_size=128, validation_data=(x_test, y_test), verbose=2
     )
     

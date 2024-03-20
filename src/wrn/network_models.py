@@ -14,6 +14,10 @@ from tensorflow import keras
 def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
                    dropout=0.0, dfs=False, regularization=5e-4, momentum=0.9, quantized=False):
 
+    dropout = K.cast_to_floatx(dropout)
+    #regularization = K.cast_to_floatx(regularization)
+    momentum = K.cast_to_floatx(momentum)
+
     nfeatures = np.prod(input_shape)
     tln_model = tln((nfeatures, ), nclasses, bn, kernel_initializer, dropout, False, regularization, momentum, quantized)
     ip = Input(shape=input_shape)
@@ -25,7 +29,8 @@ def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_norm
     output = tln_model(x)
     model = Model(ip, output)
 
-    optimizer = optimizers.SGD(learning_rate=1e-1)
+    learning_rate = K.cast_to_floatx(1e-1)
+    optimizer = optimizers.SGD(learning_rate=learning_rate)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
 
     return model
@@ -34,6 +39,10 @@ def wrn164(
     input_shape, nclasses=2, bn=True, kernel_initializer='he_normal', dropout=0.0, dfs=False, regularization=0.0,
     softmax=True
 ):
+
+    dropout = K.cast_to_floatx(dropout)
+    #regularization = K.cast_to_floatx(regularization)
+
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
     ip = Input(shape=input_shape)
 
@@ -41,9 +50,10 @@ def wrn164(
     if dfs:
         x = DFS()(x)
 
+    zero = K.cast_to_floatx(0.0)
     x = Convolution2D(
         16, (3, 3), padding='same', kernel_initializer=kernel_initializer,
-        use_bias=False, kernel_regularizer=l2(regularization) if regularization > 0.0 else None
+        use_bias=False, kernel_regularizer=l2(regularization) if regularization > zero else None
     )(x)
 
     l = 16
@@ -61,7 +71,9 @@ def wrn164(
         )
 
     if bn:
-        x = BatchNormalization(axis=channel_axis, momentum=0.9, epsilon=1e-5, gamma_initializer='ones')(x)
+        momentum = K.cast_to_floatx(0.9)
+        epsilon = K.cast_to_floatx(1e-5)
+        x = BatchNormalization(axis=channel_axis, momentum=momentum, epsilon=epsilon, gamma_initializer='ones')(x)
     x = Activation('relu')(x)
 
     deep_features = GlobalAveragePooling2D()(x)
@@ -74,16 +86,17 @@ def wrn164(
 
     model = Model(ip, output)
 
-    optimizer = optimizers.SGD(learning_rate=1e-1)
+    learning_rate = K.cast_to_floatx(1e-1)
+    optimizer = optimizers.SGD(learning_rate=learning_rate)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
 
     return model
-
 
 def densenet(
         input_shape, nclasses=2, num_dense_blocks=3, growth_rate=12, depth=100, compression_factor=0.5,
         data_augmentation=True, regularization=None, dfs=False
 ):
+    compression_factor = K.cast_to_floatx(compression_factor)
     num_bottleneck_layers = (depth - 4) // (2 * num_dense_blocks)
     num_filters_bef_dense_block = 2 * growth_rate
 
@@ -95,8 +108,9 @@ def densenet(
         x = DFS()(x)
     x = layers.BatchNormalization()(x)
     x = layers.Activation('relu')(x)
+    zero = K.cast_to_floatx(0.0)
     x = layers.Conv2D(num_filters_bef_dense_block,
-                      kernel_size=3, kernel_regularizer=l2(regularization) if regularization > 0.0 else None,
+                      kernel_size=3, kernel_regularizer=l2(regularization) if regularization > zero else None,
                       padding='same',
                       kernel_initializer='he_normal')(x)
     x = layers.concatenate([inputs, x])
@@ -108,19 +122,20 @@ def densenet(
             y = layers.BatchNormalization()(x)
             y = layers.Activation('relu')(y)
             y = layers.Conv2D(4 * growth_rate,
-                              kernel_size=1, kernel_regularizer=l2(regularization) if regularization > 0.0 else None,
+                              kernel_size=1, kernel_regularizer=l2(regularization) if regularization > zero else None,
                               padding='same',
                               kernel_initializer='he_normal')(y)
+            const = K.cast_to_floatx(0.2)
             if not data_augmentation:
-                y = layers.Dropout(0.2)(y)
+                y = layers.Dropout(const)(y)
             y = layers.BatchNormalization()(y)
             y = layers.Activation('relu')(y)
             y = layers.Conv2D(growth_rate,
-                              kernel_size=3, kernel_regularizer=l2(regularization) if regularization > 0.0 else None,
+                              kernel_size=3, kernel_regularizer=l2(regularization) if regularization > zero else None,
                               padding='same',
                               kernel_initializer='he_normal')(y)
             if not data_augmentation:
-                y = layers.Dropout(0.2)(y)
+                y = layers.Dropout(const)(y)
             x = layers.concatenate([x, y])
 
         # no transition layer after the last dense block
@@ -132,11 +147,11 @@ def densenet(
         num_filters_bef_dense_block = int(num_filters_bef_dense_block * compression_factor)
         y = layers.BatchNormalization()(x)
         y = layers.Conv2D(num_filters_bef_dense_block,
-                          kernel_size=1, kernel_regularizer=l2(regularization) if regularization > 0.0 else None,
+                          kernel_size=1, kernel_regularizer=l2(regularization) if regularization > zero else None,
                           padding='same',
                           kernel_initializer='he_normal')(y)
         if not data_augmentation:
-            y = layers.Dropout(0.2)(y)
+            y = layers.Dropout(const)(y)
         x = layers.AveragePooling2D()(y)
 
     # add classifier on top
@@ -145,14 +160,15 @@ def densenet(
     y = layers.Flatten()(x)
     outputs = layers.Dense(nclasses,
                            kernel_initializer='he_normal',
-                           kernel_regularizer=l2(regularization) if regularization > 0.0 else None,
+                           kernel_regularizer=l2(regularization) if regularization > zero else None,
                            activation='softmax')(y)
 
     # instantiate and compile model
     # orig paper uses SGD but RMSprop works better for DenseNet
     model = models.Model(inputs=inputs, outputs=outputs)
+    const = K.cast_to_floatx(1e-3)
     model.compile(loss='categorical_crossentropy',
-                  optimizer=optimizers.RMSprop(1e-3),
+                  optimizer=optimizers.RMSprop(const),
                   metrics=['acc'])
 
     return model
@@ -162,6 +178,9 @@ def efficientnetB0(
         input_shape, nclasses=2, num_dense_blocks=3, growth_rate=12, depth=100, compression_factor=0.5,
         data_augmentation=True, regularization=0., dfs=False
 ):
+    
+    compression_factor = K.cast_to_floatx(compression_factor)
+    #regularization = K.cast_to_floatx(regularization)
 
     keras_shape = input_shape
     if input_shape[-1] == 1:
@@ -215,8 +234,9 @@ def efficientnetB0(
     # instantiate and compile model
     # orig paper uses SGD but RMSprop works better for DenseNet
     model = models.Model(inputs=inputs, outputs=outputs)
+    const = K.cast_to_floatx(1e-4)
     model.compile(loss='categorical_crossentropy',
-                  optimizer=optimizers.SGD(1e-4),
+                  optimizer=optimizers.SGD(const),
                   metrics=['acc'])
 
     return model
@@ -226,6 +246,9 @@ def efficientnetB1(
         input_shape, nclasses=2, num_dense_blocks=3, growth_rate=12, depth=100, compression_factor=0.5,
         data_augmentation=True, regularization=0.
 ):
+    
+    compression_factor = K.cast_to_floatx(compression_factor)
+    #regularization = K.cast_to_floatx(regularization)
 
     keras_shape = input_shape
     if input_shape[-1] == 1:
@@ -275,8 +298,9 @@ def efficientnetB1(
     # instantiate and compile model
     # orig paper uses SGD but RMSprop works better for DenseNet
     model = models.Model(inputs=inputs, outputs=outputs)
+    const = K.cast_to_floatx(1e4)
     model.compile(loss='categorical_crossentropy',
-                  optimizer=optimizers.SGD(1e-4),
+                  optimizer=optimizers.SGD(const),
                   metrics=['acc'])
 
     return model

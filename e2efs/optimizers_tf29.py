@@ -21,7 +21,7 @@ def get_gradients(self, tape, loss, var_list, grad_loss=None):
         combined_e2efs_grad = (1. - self.e2efs_layer.moving_factor) * e2efs_grad_corrected + \
                               self.e2efs_layer.moving_factor * e2efs_regularizer_grad_corrected
         if(K.floatx() == 'float16'):
-            epsilon = 0.000976562
+            epsilon = K.cast_to_floatx(0.000976562)
         else:
             epsilon = K.epsilon()
         combined_e2efs_grad = K.sign(
