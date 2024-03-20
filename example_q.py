@@ -23,7 +23,7 @@ if __name__ == '__main__':
     model.summary()
     model.compile(optimizer=optimizers.SGD(), loss='categorical_crossentropy', metrics=['acc'])
 
-    fs_class = models.E2EFSSoft(n_features_to_select=400).attach(model).fit(
+    fs_class = models.E2EFSSoft(n_features_to_select=39).attach(model).fit(
         x_train, y_train, batch_size=128, validation_data=(x_test, y_test), verbose=2
     )
     
