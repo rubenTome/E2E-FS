@@ -11,7 +11,6 @@ class E2EFS_Base(layers.Layer):
                  kernel_regularizer=None,
                  heatmap_momentum=.99999,
                  **kwargs):
-        heatmap_momentum = K.cast_to_floatx(heatmap_momentum)
         if 'input_shape' not in kwargs and 'input_dim' in kwargs:
             kwargs['input_shape'] = (kwargs.pop('input_dim'),)
         super(E2EFS_Base, self).__init__(**kwargs)
@@ -59,8 +58,7 @@ class E2EFS_Base(layers.Layer):
         return output
 
     def _get_update_list(self, kernel):
-        const = K.cast_to_floatx(1. - self.heatmap_momentum)
-        self.moving_heatmap.assign(self.heatmap_momentum * self.moving_heatmap + const * K.sign(kernel))
+        self.moving_heatmap.assign(self.heatmap_momentum * self.moving_heatmap + (1. - self.heatmap_momentum) * K.sign(kernel))
         update_list = [
             K.moving_average_update(self.moving_heatmap, K.sign(kernel), self.heatmap_momentum),
         ]
@@ -97,14 +95,14 @@ class E2EFSSoft(E2EFS_Base):
         if 'input_shape' not in kwargs and 'input_dim' in kwargs:
             kwargs['input_shape'] = (kwargs.pop('input_dim'),)
 
-        self.dropout = K.cast_to_floatx(dropout)
-        self.decay_factor = K.cast_to_floatx(decay_factor)
+        self.dropout = dropout
+        self.decay_factor = decay_factor
         self.T = T
         self.warmup_T = warmup_T
-        self.start_alpha = K.cast_to_floatx(start_alpha)
+        self.start_alpha = start_alpha
         self.cont_T = 0
-        self.alpha_M = K.cast_to_floatx(alpha_N)
-        self.epsilon = K.cast_to_floatx(epsilon)
+        self.alpha_M = alpha_N
+        self.epsilon = epsilon
         super(E2EFSSoft, self).__init__(units=units,
                                         kernel_regularizer=kernel_regularizer,
                                         kernel_initializer=kernel_initializer,
@@ -122,10 +120,9 @@ class E2EFSSoft(E2EFS_Base):
                                         name='moving_T',
                                         initializer='zeros',
                                         trainable=False)
-        zero = K.cast_to_floatx(0.)
         self.moving_factor = self.add_weight(shape=(),
                                              name='moving_factor',
-                                             initializer=initializers.constant([zero]),
+                                             initializer=initializers.constant([0.]),
                                              trainable=False)
         self.moving_decay = self.add_weight(shape=(),
                                              name='moving_decay',
@@ -145,23 +142,19 @@ class E2EFSSoft(E2EFS_Base):
         self.kernel_activation = kernel_activation
 
         def kernel_constraint(x):
-            zero = K.cast_to_floatx(0.)
-            one = K.cast_to_floatx(1.)
-            return K.clip(x, zero, one)
+            return K.clip(x, 0., 1.)
 
         self.kernel_constraint = kernel_constraint
 
         def loss_units(x):
-            zero = K.cast_to_floatx(0.)
-            one = K.cast_to_floatx(1.)
             t = x / K.max(K.abs(x))
             x = K.switch(K.less(t, K.epsilon()), K.zeros_like(x), x)
-            m = K.sum(K.cast(K.greater(x, zero), K.floatx()))
+            m = K.sum(K.cast(K.greater(x, 0.), K.floatx()))
             sum_x = K.sum(x)
             moving_units = K.switch(K.less_equal(m, self.units), m,
-                                    (one - self.moving_decay) * self.moving_units)
-            epsilon_minus = zero
-            epsilon_plus = K.switch(K.less_equal(m, self.units), self.moving_units, zero)
+                                    (1. - self.moving_decay) * self.moving_units)
+            epsilon_minus = 0.
+            epsilon_plus = K.switch(K.less_equal(m, self.units), self.moving_units, 0.)
             return K.relu(moving_units - sum_x - epsilon_minus) + K.relu(sum_x - moving_units - epsilon_plus)
 
         # self.kernel_regularizer = lambda x: regularizers.l2(.01)(K.relu(x))
@@ -173,23 +166,20 @@ class E2EFSSoft(E2EFS_Base):
             t = x / K.max(K.abs(x))
             p = K.switch(K.less(t, K.epsilon()), K.zeros_like(x), x)
             cost = K.cast_to_floatx(0.)
-            two = K.cast_to_floatx(2.)
-            cost += K.sum(p * (1. - p)) + two * l_units
+            cost += K.sum(p * (1. - p)) + 2. * l_units
             # cost += K.sum(K.relu(x - 1.))
             return cost
 
         self.regularization_loss = regularization(self.kernel)
 
     def _get_update_list(self, kernel):
-        one = K.cast_to_floatx(1.)
-        const = K.cast_to_floatx(0.75)
         update_list = super(E2EFSSoft, self)._get_update_list(kernel)
         update_list += [
             (self.moving_factor, K.switch(K.less(self.moving_T, self.warmup_T),
                                           self.start_alpha,
-                                          K.minimum(self.alpha_M, self.start_alpha + (one - self.start_alpha) * (self.moving_T - self.warmup_T) / self.T))),
+                                          K.minimum(self.alpha_M, self.start_alpha + (1. - self.start_alpha) * (self.moving_T - self.warmup_T) / self.T))),
             (self.moving_T, self.moving_T + 1),
-            (self.moving_decay, K.switch(K.less(self.moving_factor, self.alpha_M), self.moving_decay, K.maximum(const, self.moving_decay + self.epsilon)))
+            (self.moving_decay, K.switch(K.less(self.moving_factor, self.alpha_M), self.moving_decay, K.maximum(.75, self.moving_decay + self.epsilon)))
         ]
         return update_list
 
@@ -227,13 +217,13 @@ class E2EFSRanking(E2EFS_Base):
         if 'input_shape' not in kwargs and 'input_dim' in kwargs:
             kwargs['input_shape'] = (kwargs.pop('input_dim'),)
 
-        self.dropout = K.cast_to_floatx(dropout)
+        self.dropout = dropout
         self.T = T
         self.warmup_T = warmup_T
-        self.start_alpha = K.cast_to_floatx(start_alpha)
+        self.start_alpha = start_alpha
         self.cont_T = 0
-        self.speedup = K.cast_to_floatx(speedup)
-        self.alpha_M = K.cast_to_floatx(alpha_M)
+        self.speedup = speedup
+        self.alpha_M = alpha_M
         super(E2EFSRanking, self).__init__(units=units,
                                         kernel_regularizer=kernel_regularizer,
                                         kernel_initializer=kernel_initializer,
@@ -251,10 +241,9 @@ class E2EFSRanking(E2EFS_Base):
                                         name='moving_T',
                                         initializer='zeros',
                                         trainable=False)
-        zero = K.cast_to_floatx(0.)
         self.moving_factor = self.add_weight(shape=(),
                                              name='moving_factor',
-                                             initializer=initializers.constant([zero]),
+                                             initializer=initializers.constant([0.]),
                                              trainable=False)
         self.cont = self.add_weight(shape=(),
                                     name='cont',
@@ -262,14 +251,11 @@ class E2EFSRanking(E2EFS_Base):
                                     trainable=False)
 
         def apply_dropout(x, rate, refactor=False):
-            zero = K.cast_to_floatx(0.)
-            one = K.cast_to_floatx(1.)
-            if zero < self.dropout < one:
+            if 0. < self.dropout < 1.:
                 def dropped_inputs():
                     x_shape = K.int_shape(x)
                     noise = K.random_uniform(x_shape)
                     factor = 1. / (1. - rate) if refactor else 1.
-                    factor = K.cast_to_floatx(factor)
                     return K.switch(K.less(noise, self.dropout), K.zeros_like(x), factor * x)
                 return K.in_train_phase(dropped_inputs, x)
             return x
@@ -284,9 +270,7 @@ class E2EFSRanking(E2EFS_Base):
         self.kernel_activation = kernel_activation
 
         def kernel_constraint(x):
-            zero = K.cast_to_floatx(0.)
-            one = K.cast_to_floatx(1.)
-            return K.clip(x, zero, one)
+            return K.clip(x, 0., 1.)
 
         self.kernel_constraint = kernel_constraint
 
@@ -310,8 +294,7 @@ class E2EFSRanking(E2EFS_Base):
             t = x / K.max(K.abs(x))
             p = K.switch(K.less(t, K.epsilon()), K.zeros_like(x), x)
             cost = K.cast_to_floatx(0.)
-            two = K.cast_to_floatx(2.)
-            cost += K.sum(p) - K.sum(K.square(p)) + two * l_units
+            cost += K.sum(p) - K.sum(K.square(p)) + 2. * l_units
             # cost += K.sum(p * (1. - p)) + l_units
             # cost += K.sum(K.relu(x - 1.))
             return cost
@@ -320,15 +303,14 @@ class E2EFSRanking(E2EFS_Base):
 
     def _get_update_list(self, kernel):
         update_list = super(E2EFSRanking, self)._get_update_list(kernel)
-        one = K.cast_to_floatx(1.)
         update_list += [
             (self.moving_factor, K.switch(K.less_equal(self.moving_T, self.warmup_T),
                                           self.start_alpha,
                                           K.minimum(self.alpha_M, self.start_alpha + (1. - self.start_alpha) * (self.moving_T - self.warmup_T) / self.T))),
             (self.moving_T, self.moving_T + 1),
             (self.moving_units, K.switch(K.less_equal(self.moving_T, self.warmup_T),
-                                         (one - self.start_alpha * np.prod(K.int_shape(kernel))),
-                                         K.maximum(self.alpha_M, np.prod(K.int_shape(kernel)) * K.pow(one / np.prod(K.int_shape(kernel)), self.speedup * (self.moving_T - self.warmup_T) / self.T)))),
+                                         K.cast_to_floatx((1. - self.start_alpha) * np.prod(K.int_shape(kernel))),
+                                         K.maximum(self.alpha_M, np.prod(K.int_shape(kernel)) * K.pow(K.cast_to_floatx(1. / np.prod(K.int_shape(kernel))), self.speedup * (self.moving_T - self.warmup_T) / self.T)))),
                                          # K.maximum(1., (self.T - self.start_alpha - self.speedup * (self.moving_T - self.warmup_T)) * np.prod(K.int_shape(kernel)) / self.T))),
         ]
         return update_list
