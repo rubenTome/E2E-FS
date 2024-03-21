@@ -165,7 +165,7 @@ class E2EFSSoft(E2EFS_Base):
             l_units = loss_units(x)
             t = x / K.max(K.abs(x))
             p = K.switch(K.less(t, K.epsilon()), K.zeros_like(x), x)
-            cost = K.cast_to_floatx(0.)
+            cost = 0.
             cost += K.sum(p * (1. - p)) + 2. * l_units
             # cost += K.sum(K.relu(x - 1.))
             return cost
@@ -297,7 +297,7 @@ class E2EFSRanking(E2EFS_Base):
             l_units = loss_units(x)
             t = x / K.max(K.abs(x))
             p = K.switch(K.less(t, K.epsilon()), K.zeros_like(x), x)
-            cost = K.cast_to_floatx(0.)
+            cost = 0.
             cost += K.sum(p) - K.sum(K.square(p)) + 2. * l_units
             # cost += K.sum(p * (1. - p)) + l_units
             # cost += K.sum(K.relu(x - 1.))

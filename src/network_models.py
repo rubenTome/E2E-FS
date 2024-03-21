@@ -15,19 +15,17 @@ def fcnn(nfeatures, nclasses=2, layer_dims=None, bn=True, kernel_initializer='he
     x = input
     if dfs:
         x = DFS()(x)
-    zero = K.cast_to_floatx(0.0)
-    epsilon = K.cast_to_floatx(1e-5)
     for layer_dim in layer_dims:
         x = layers.Dense(layer_dim, use_bias=not bn, kernel_initializer=kernel_initializer,
-                  kernel_regularizer=l2(regularization) if regularization > zero else None)(x)
+                  kernel_regularizer=l2(regularization) if regularization > 0.0 else None)(x)
         if bn:
-            x = layers.BatchNormalization(axis=channel_axis, momentum=momentum, epsilon=epsilon, gamma_initializer='ones')(x)
-        if dropout > zero:
-            x = layers.Dropout(dropout)(x)
+            x = layers.BatchNormalization(axis=channel_axis, momentum=K.cast_to_floatx(momentum), epsilon=K.cast_to_floatx(1e-5), gamma_initializer='ones')(x)
+        if dropout > 0.0:
+            x = layers.Dropout(K.cast_to_floatx(dropout))(x)
         x = layers.Activation('relu')(x)
 
     x = layers.Dense(nclasses, use_bias=True, kernel_initializer=kernel_initializer,
-              kernel_regularizer=l2(regularization) if regularization > zero else None)(x)
+              kernel_regularizer=l2(regularization) if regularization > 0.0 else None)(x)
     output = layers.Activation('softmax')(x)
 
     if quantized:
@@ -35,8 +33,7 @@ def fcnn(nfeatures, nclasses=2, layer_dims=None, bn=True, kernel_initializer='he
     else:
         model = Model(input, output)
 
-    lr = K.cast_to_floatx(1e-4)
-    optimizer = optimizers.Adam(lr=lr)
+    optimizer = optimizers.Adam(lr=K.cast_to_floatx(1e-4))
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
 
     return model

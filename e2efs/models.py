@@ -57,10 +57,9 @@ class E2EFSBase:
             steps_per_epoch=None,
             validation_steps=None,
             **kwargs):
-        validation_split = K.cast_to_floatx(validation_split)
         callbacks = callbacks or list()
         callbacks.append(custom_callbacks.E2EFSCallback(verbose=verbose))
-        self.model.fit(x, y, epochs=epochs, batch_size=batch_size, verbose=verbose, callbacks=callbacks, validation_split=validation_split,
+        self.model.fit(x, y, epochs=epochs, batch_size=batch_size, verbose=verbose, callbacks=callbacks, validation_split=K.cast_to_floatx(validation_split),
                        validation_data=validation_data, shuffle=shuffle, class_weight=class_weight, sample_weight=sample_weight,
                        initial_epoch=initial_epoch, steps_per_epoch=steps_per_epoch, validation_steps=validation_steps, **kwargs)
         return self
@@ -80,9 +79,8 @@ class E2EFSBase:
                     steps_per_epoch=None,
                     validation_steps=None,
                     **kwargs):
-        validation_split = K.cast_to_floatx(validation_split)
         self.model.fit(x, y, epochs=epochs, batch_size=batch_size, verbose=verbose, callbacks=callbacks,
-                       validation_split=validation_split,
+                       validation_split=K.cast_to_floatx(validation_split),
                        validation_data=validation_data, shuffle=shuffle, class_weight=class_weight,
                        sample_weight=sample_weight,
                        initial_epoch=initial_epoch, steps_per_epoch=steps_per_epoch, validation_steps=validation_steps,
@@ -102,8 +100,7 @@ class E2EFSBase:
     def get_ranking(self):
         self._check_model()
         input_shape = self.model.input_shape[1:]
-        const = K.cast_to_floatx(-1.)
-        return np.argsort(const * K.eval(self.model.heatmap)).reshape(input_shape)
+        return np.argsort(-1. * K.eval(self.model.heatmap)).reshape(input_shape)
 
     def _check_model(self):
         if self.model is None:
@@ -126,8 +123,7 @@ class E2EFSSoft(E2EFSBase):
         super(E2EFSSoft, self).__init__(th)
 
     def get_layer(self, input_shape):
-        decay_factor = K.cast_to_floatx(1. - self.rho)
-        return e2efs_layers.E2EFSSoft(self.n_features_to_select, T=self.T, warmup_T=self.warmup_T, decay_factor=decay_factor,
+        return e2efs_layers.E2EFSSoft(self.n_features_to_select, T=self.T, warmup_T=self.warmup_T, decay_factor=K.cast_to_floatx(1. - self.rho),
                                alpha_N=self.alpha_M, epsilon=self.epsilon, input_shape=input_shape)
 
 class E2EFS(E2EFSSoft):
