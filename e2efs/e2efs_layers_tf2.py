@@ -100,7 +100,7 @@ class E2EFSSoft(E2EFS_Base):
         self.T = K.cast_to_floatx(T)
         self.warmup_T = K.cast_to_floatx(warmup_T)
         self.start_alpha = K.cast_to_floatx(start_alpha)
-        self.cont_T = K.cast_to_floatx(0)
+        self.cont_T = 0
         self.alpha_M = K.cast_to_floatx(alpha_N)
         self.epsilon = K.cast_to_floatx(epsilon)
         super(E2EFSSoft, self).__init__(units=units,
@@ -225,7 +225,7 @@ class E2EFSRanking(E2EFS_Base):
         self.T = K.cast_to_floatx(T)
         self.warmup_T = K.cast_to_floatx(warmup_T)
         self.start_alpha = K.cast_to_floatx(start_alpha)
-        self.cont_T = K.cast_to_floatx(0)
+        self.cont_T = 0
         self.speedup = K.cast_to_floatx(speedup)
         self.alpha_M = K.cast_to_floatx(alpha_M)
         super(E2EFSRanking, self).__init__(units=units,
@@ -317,9 +317,9 @@ class E2EFSRanking(E2EFS_Base):
         self.moving_T.assign_add(1.)
         self.moving_units.assign(
             K.switch(K.less_equal(self.moving_T, self.warmup_T),
-                     K.cast_to_floatx((1. - self.start_alpha) * np.prod(K.int_shape(kernel))),
+                     (1. - self.start_alpha) * np.prod(K.int_shape(kernel)),
                      K.maximum(self.alpha_M,
-                               np.prod(K.int_shape(kernel)) * K.pow(K.cast_to_floatx(1. / np.prod(K.int_shape(kernel))),
+                               np.prod(K.int_shape(kernel)) * K.pow(1. / np.prod(K.int_shape(kernel)),
                                                                     self.speedup * (
                                                                                 self.moving_T - self.warmup_T) / self.T)))
         )
