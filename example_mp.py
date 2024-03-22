@@ -1,5 +1,5 @@
 from codecarbon import EmissionsTracker
-tracker = EmissionsTracker(log_level="critical")
+tracker = EmissionsTracker(log_level="critical", output_file="emissions_mp.csv")
 tracker.start()
 from keras.datasets import mnist
 from keras.callbacks import LearningRateScheduler
@@ -10,7 +10,7 @@ from src.wrn.network_models import wrn164, three_layer_nn
 import numpy as np
 
 #precision mixta mejor que precision fija a float16
-#errores en e2efs_layers_tf2.py en operaciones aritmeticas
+#TODO errores en e2efs_layers_tf2.py al usar mixed_precision
 mixed_precision.set_global_policy('mixed_float16')
 
 if __name__ == '__main__':

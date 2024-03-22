@@ -4,7 +4,7 @@ from keras.regularizers import l1, l2
 from src.layers.dfs import DFS
 import tensorflow_model_optimization as tfmot
 
-
+#TODO regularization no puede castearse a float16
 def fcnn(nfeatures, nclasses=2, layer_dims=None, bn=True, kernel_initializer='he_normal',
                  dropout=0.0, dfs=False, regularization=0.0, momentum=0.9, quantized=False):
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
