@@ -97,8 +97,8 @@ class E2EFSSoft(E2EFS_Base):
 
         self.dropout = K.cast_to_floatx(dropout)
         self.decay_factor = K.cast_to_floatx(decay_factor)
-        self.T = K.cast_to_floatx(T)
-        self.warmup_T = K.cast_to_floatx(warmup_T)
+        self.T = T
+        self.warmup_T = warmup_T
         self.start_alpha = K.cast_to_floatx(start_alpha)
         self.cont_T = 0
         self.alpha_M = K.cast_to_floatx(alpha_N)
@@ -222,8 +222,8 @@ class E2EFSRanking(E2EFS_Base):
             kwargs['input_shape'] = (kwargs.pop('input_dim'),)
 
         self.dropout = K.cast_to_floatx(dropout)
-        self.T = K.cast_to_floatx(T)
-        self.warmup_T = K.cast_to_floatx(warmup_T)
+        self.T = T
+        self.warmup_T = warmup_T
         self.start_alpha = K.cast_to_floatx(start_alpha)
         self.cont_T = 0
         self.speedup = K.cast_to_floatx(speedup)

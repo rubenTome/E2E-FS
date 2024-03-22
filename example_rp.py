@@ -22,7 +22,7 @@ if __name__ == '__main__':
     model = three_layer_nn(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4)
     model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss='categorical_crossentropy')
 
-    #con n_features_to_select=39 es demasiado lento (epsilon=0,000976562, th menor)
+    #con n_features_to_select=39 es demasiado lento (epsilon=0,000976562 en src/network_models.py, th menor de 0.95)
     fs_class = models.E2EFSSoft(n_features_to_select=39, th=.008).attach(model).fit(
         x_train, y_train, batch_size=128, validation_data=(x_test, y_test), verbose=2
     )

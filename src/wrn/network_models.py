@@ -11,7 +11,7 @@ import tempfile
 import os
 from tensorflow import keras
 
-#regularization no puede castearse a float16
+
 def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
                    dropout=0.0, dfs=False, regularization=5e-4, momentum=0.9, quantized=False):
 
