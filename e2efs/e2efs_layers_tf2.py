@@ -49,8 +49,8 @@ class E2EFS_Base(layers.Layer):
         if self.kernel_activation is not None:
             kernel = self.kernel_activation(kernel)
         kernel_clipped = K.reshape(kernel, shape=inputs.shape[1:])
-
-        output = inputs * kernel_clipped
+        aux = K.cast_to_floatx(inputs)#TODO casteo para mixed precision
+        output = aux * kernel_clipped
 
         if training in {0, False}:
             return output
@@ -60,8 +60,10 @@ class E2EFS_Base(layers.Layer):
         return output
 
     def _get_update_list(self, kernel):
+        aux = K.cast_to_floatx(self.moving_heatmap)#TODO casteo para mixed precision
+        aux2 = K.cast_to_floatx((1. - self.moving_heatmap))#TODO casteo para mixed precision
         self.moving_heatmap.assign(
-            self.heatmap_momentum * self.moving_heatmap + (1. - self.moving_heatmap) * K.sign(kernel)
+            self.heatmap_momentum * aux + aux2 * K.sign(kernel)
         )
 
     def add_to_model(self, model, input_shape, activation=None):
@@ -135,7 +137,8 @@ class E2EFSSoft(E2EFS_Base):
 
         def kernel_activation(x):
             t = x / K.max(K.abs(x))
-            s = K.switch(K.less(t, K.epsilon()), K.zeros_like(x), x)
+            aux = K.cast_to_floatx(x)#TODO casteo para mixed precision
+            s = K.switch(K.less(t, K.epsilon()), K.zeros_like(x), aux)
             # s /= K.stop_gradient(K.max(s))
             return s
 
@@ -175,16 +178,20 @@ class E2EFSSoft(E2EFS_Base):
 
     def _get_update_list(self, kernel):
         super(E2EFSSoft, self)._get_update_list(kernel)
+        aux = K.cast_to_floatx((1. - self.start_alpha))#TODO casteo para mixed precision
+        aux2 = K.cast_to_floatx((self.moving_T - self.warmup_T))#TODO casteo para mixed precision
         self.moving_factor.assign(
             K.switch(K.less(self.moving_T, self.warmup_T),
                      self.start_alpha,
                      K.minimum(self.alpha_M,
-                               self.start_alpha + (1. - self.start_alpha) * (self.moving_T - self.warmup_T) / self.T))
+                               self.start_alpha + aux * aux2 / self.T))
         )
         self.moving_T.assign_add(1.)
+        aux = K.cast_to_floatx(self.moving_decay + self.epsilon)#TODO casteo para mixed precision
+        aux2 = K.cast_to_floatx(self.moving_decay)#TODO casteo para mixed precision
         self.moving_decay.assign(
-            K.switch(K.less(self.moving_factor, self.alpha_M), self.moving_decay,
-                     K.maximum(K.cast_to_floatx(.75), self.moving_decay + self.epsilon))
+            K.switch(K.less(self.moving_factor, self.alpha_M), aux2,
+                     K.maximum(K.cast_to_floatx(.75), aux))
         )
 
 

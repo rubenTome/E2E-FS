@@ -1,5 +1,6 @@
 from e2efs import callbacks as custom_callbacks
 from keras import backend as K
+from keras.optimizers import SGD
 import tensorflow as tf
 import numpy as np
 from packaging import version
@@ -29,12 +30,19 @@ class E2EFSBase:
         #TODO si intento cuantizar self.model: ValueError: Quantizing a keras Model inside another keras Model is not supported.
         self.model = self.e2efs_layer.add_to_model(model, input_shape=model.input_shape[1:])
         kwargs = model.optimizer.get_config()
+        #TODO si usamos mixed precision, el optimizador lossscaleoptimizer no esta soportado
+        #TODO si usamos mixed precision existe warning: WARNING:tensorflow:Mixed precision compatibility check (mixed_float16): WARNING
         if 'sgd' in type(model.optimizer).__name__.lower():
             opt = custom_optimizers.E2EFS_SGD(self.e2efs_layer, th=self.th, **kwargs)
         elif 'adam' in type(model.optimizer).__name__.lower():
             opt = custom_optimizers.E2EFS_Adam(self.e2efs_layer, th=self.th, **kwargs)
         elif 'rmsprop' in type(model.optimizer).__name__.lower():
             opt = custom_optimizers.E2EFS_RMSprop(self.e2efs_layer, th=self.th, **kwargs)
+        elif 'lossscaleoptimizer' in type(model.optimizer).__name__.lower():
+            #TODO por el momento solo SGD dentro de lossscaleoptimizer
+            inneropt = SGD(learning_rate=kwargs["inner_optimizer"]["config"]["learning_rate"], decay=kwargs["inner_optimizer"]["config"]["decay"],
+                momentum=kwargs["inner_optimizer"]["config"]["momentum"], nesterov=kwargs["inner_optimizer"]["config"]["nesterov"])
+            opt = custom_optimizers.E2EFS_Lossscaleoptimizer(inner_optimizer=inneropt, e2efs_layer=self.e2efs_layer, th=self.th, kwargs=kwargs)
         else:
             raise Exception('Optimizer not supported. Contact the authors if you need it')
         compile_args = model._get_compile_args()

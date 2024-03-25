@@ -10,7 +10,6 @@ from src.wrn.network_models import wrn164, three_layer_nn
 import numpy as np
 
 #precision mixta mejor que precision fija a float16
-#TODO errores en e2efs_layers_tf2.py al usar mixed_precision
 mixed_precision.set_global_policy('mixed_float16')
 
 if __name__ == '__main__':
@@ -24,8 +23,8 @@ if __name__ == '__main__':
     model = three_layer_nn(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4)
     model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss='categorical_crossentropy')
 
-    #con n_features_to_select=39 es demasiado lento (epsilon=0,000976562, th menor)
-    fs_class = models.E2EFSSoft(n_features_to_select=39, th=.008).attach(model).fit(
+    #TODO no funciona, nnz nunca se reduce
+    fs_class = models.E2EFSSoft(n_features_to_select=39).attach(model).fit(
         x_train, y_train, batch_size=128, validation_data=(x_test, y_test), verbose=2
     )
     
