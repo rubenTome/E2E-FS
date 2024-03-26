@@ -1,5 +1,5 @@
 from codecarbon import EmissionsTracker
-tracker = EmissionsTracker(log_level="critical", output_file="emissions_rp.csv")
+tracker = EmissionsTracker(log_level="critical", output_file="emissions_32q.csv")
 tracker.start()
 from keras.datasets import mnist
 from keras.callbacks import LearningRateScheduler
@@ -8,8 +8,7 @@ from keras import optimizers
 from e2efs import models
 from src.wrn.network_models import wrn164, three_layer_nn, three_layer_nn_q
 import numpy as np
-from keras import backend as K
-K.set_floatx("float16")
+import tensorflow_model_optimization as tfmot
 
 if __name__ == '__main__':
 
@@ -19,11 +18,11 @@ if __name__ == '__main__':
     y_train = to_categorical(y_train)
     y_test = to_categorical(y_test)
 
-    model = three_layer_nn_q(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4, layer_dims=None)
-    model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss='categorical_crossentropy')
+    model = three_layer_nn_q(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4, layer_dims=None, quantized=True)
+    model.summary()
+    model.compile(optimizer=optimizers.SGD(), loss='categorical_crossentropy', metrics=['acc'])
 
-    #con n_features_to_select=39 es demasiado lento (epsilon=0,000976562 en src/network_models.py, th menor de 0.95)
-    fs_class = models.E2EFSSoft(n_features_to_select=39, th=.008).attach(model).fit(
+    fs_class = models.E2EFSSoft(n_features_to_select=39).attach(model).fit(
         x_train, y_train, batch_size=128, validation_data=(x_test, y_test), verbose=2
     )
     
