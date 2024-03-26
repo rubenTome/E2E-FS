@@ -6,7 +6,7 @@ from keras.callbacks import LearningRateScheduler
 from keras.utils import to_categorical
 from keras import optimizers
 from e2efs import models
-from src.wrn.network_models import wrn164, three_layer_nn
+from src.wrn.network_models import wrn164, three_layer_nn, three_layer_nn_q
 import numpy as np
 
 
@@ -20,7 +20,7 @@ if __name__ == '__main__':
     y_test = to_categorical(y_test)
 
     ## LOAD MODEL AND COMPILE IT (NEVER FORGET TO COMPILE!)
-    model = three_layer_nn(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4)
+    model = three_layer_nn_q(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4, layer_dims=None)
     model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss='categorical_crossentropy')
 
     ## LOAD E2EFS AND RUN IT

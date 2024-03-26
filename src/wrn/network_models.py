@@ -10,13 +10,14 @@ import numpy as np
 import tempfile
 import os
 from tensorflow import keras
+import tensorflow_model_optimization as tfmot
 
 
 def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
-                   dropout=0.0, dfs=False, regularization=5e-4, momentum=0.9, quantized=False):
+                   dropout=0.0, dfs=False, regularization=5e-4, momentum=0.9):
 
     nfeatures = np.prod(input_shape)
-    tln_model = tln((nfeatures, ), nclasses, bn, kernel_initializer, K.cast_to_floatx(dropout), False, regularization, K.cast_to_floatx(momentum), quantized)
+    tln_model = tln((nfeatures, ), nclasses, bn, kernel_initializer, K.cast_to_floatx(dropout), False, regularization, K.cast_to_floatx(momentum))
     ip = Input(shape=input_shape)
     x = ip
     if dfs:
@@ -26,6 +27,43 @@ def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_norm
     output = tln_model(x)
     model = Model(ip, output)
 
+    optimizer = optimizers.SGD(learning_rate=K.cast_to_floatx(1e-1))
+    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
+
+    return model
+
+def three_layer_nn_q(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
+                   dropout=0.0, dfs=False, regularization=5e-4, layer_dims=[50, 25, 10], quantized=False, momentum=0.9):
+
+    layersL = [layers.InputLayer(input_shape=input_shape)]
+    if dfs:
+        layersL.append(DFS())
+    else:
+        layersL.append(layers.Flatten())
+
+    channel_axis = 1 if K.image_data_format() == "channels_first" else -1
+    layersL.append(layers.InputLayer(input_shape=(np.prod(input_shape),), sparse=False))
+    if layer_dims is None:
+        layer_dims = [150, 100, 50]
+    if dfs:
+        layersL.append(DFS())
+    for layer_dim in layer_dims:
+        layersL.append(layers.Dense(layer_dim, use_bias=not bn, kernel_initializer=kernel_initializer,
+                  kernel_regularizer=l2(regularization) if regularization > 0.0 else None))
+        if bn:
+            layersL.append(layers.BatchNormalization(axis=channel_axis, momentum=K.cast_to_floatx(momentum), epsilon=K.cast_to_floatx(1e-5), gamma_initializer='ones'))
+        if dropout > 0.0:
+            layers.append(layers.Dropout(K.cast_to_floatx(dropout)))
+        layersL.append(layers.Activation('relu'))
+
+    layersL.append(layers.Dense(nclasses, use_bias=True, kernel_initializer=kernel_initializer,
+              kernel_regularizer=l2(regularization) if regularization > 0.0 else None))
+    layersL.append(layers.Activation('softmax'))
+
+    model = keras.Sequential(layersL)
+    #cuantizamos modelo
+    if quantized:
+        tfmot.quantization.keras.quantize_model(model)
     optimizer = optimizers.SGD(learning_rate=K.cast_to_floatx(1e-1))
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
 
