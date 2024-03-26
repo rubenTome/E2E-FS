@@ -63,7 +63,7 @@ def three_layer_nn_q(input_shape, nclasses=2, bn=True, kernel_initializer='he_no
     model = keras.Sequential(layersL)
     #cuantizamos modelo
     if quantized:
-        tfmot.quantization.keras.quantize_model(model)
+        model = tfmot.quantization.keras.quantize_model(model)
     optimizer = optimizers.SGD(learning_rate=K.cast_to_floatx(1e-1))
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
 
