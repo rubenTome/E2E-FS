@@ -10,7 +10,7 @@ fileNames = [file for file in fileNames if '.csv' in file]
 
 usecols = [0, 1, 5, 6]
 x = np.arange(len(usecols))
-width = 0.25
+width = 0.15
 multiplier = 0
 keys = []
 
@@ -23,7 +23,6 @@ for file in fileNames:
     df["accuracy"] = df["accuracy"] * 100
     df["duration"] = df["duration"] / 10
     df["emissions"] = df["emissions"] * 10000
-    # plt.bar(df.keys() + fileId, df.values[0])
 
     offset = width * multiplier
     rects = ax.bar(x + offset, df.values[0], width, label=file)
