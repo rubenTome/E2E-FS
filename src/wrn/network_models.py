@@ -33,7 +33,7 @@ def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_norm
     return model
 
 def three_layer_nn_q(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
-                   dropout=0.0, dfs=False, regularization=5e-4, layer_dims=[50, 25, 10], quantized=False, momentum=0.9):
+                   dropout=0.0, dfs=False, regularization=5e-4, layer_dims=None, quantized=False, momentum=0.9):
 
     layersL = [layers.InputLayer(input_shape=input_shape)]
     if dfs:
@@ -64,6 +64,7 @@ def three_layer_nn_q(input_shape, nclasses=2, bn=True, kernel_initializer='he_no
     #cuantizamos modelo
     if quantized:
         model = tfmot.quantization.keras.quantize_model(model)
+    #optimizer = optimizers.Adam(lr=K.cast_to_floatx(1e-4))
     optimizer = optimizers.SGD(learning_rate=K.cast_to_floatx(1e-1))
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
 

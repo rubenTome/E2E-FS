@@ -20,7 +20,7 @@ if __name__ == '__main__':
     y_test = to_categorical(y_test)
 
     ## LOAD MODEL AND COMPILE IT (NEVER FORGET TO COMPILE!)
-    model = three_layer_nn_q(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4, layer_dims=None)
+    model = three_layer_nn_q(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4, layer_dims=[50, 25, 10])
     model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss='categorical_crossentropy')
 
     ## LOAD E2EFS AND RUN IT

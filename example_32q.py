@@ -18,7 +18,7 @@ if __name__ == '__main__':
     y_train = to_categorical(y_train)
     y_test = to_categorical(y_test)
 
-    model = three_layer_nn_q(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4, layer_dims=None, quantized=True)
+    model = three_layer_nn_q(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4, layer_dims=[50, 25, 10], quantized=True)
     model.summary()
     model.compile(optimizer=optimizers.SGD(), loss='categorical_crossentropy', metrics=['acc'])
 
