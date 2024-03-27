@@ -296,9 +296,6 @@ class E2EFS_Lossscaleoptimizer(LossScaleOptimizer):
         else:
             super(E2EFS_Lossscaleoptimizer, self).__init__(inner_optimizer)
         # TODO lossscaleoptimizer no es un legacy optimizer, no se puede usar _set_hyper
-        # self._set_hyper('e2efs_lr', K.cast_to_floatx(e2efs_lr))
-        # self._set_hyper('e2efs_beta_1', K.cast_to_floatx(beta_1))
-        # self._set_hyper('e2efs_beta_2', K.cast_to_floatx(beta_2))
         self.e2efs_lr = K.cast_to_floatx(e2efs_lr)
         self.e2efs_beta_1 = K.cast_to_floatx(beta_1)
         self.e2efs_beta_2 = K.cast_to_floatx(beta_2)
@@ -322,12 +319,12 @@ class E2EFS_Lossscaleoptimizer(LossScaleOptimizer):
 
     def _prepare_local(self, var_device, var_dtype, apply_state):
         super(E2EFS_Lossscaleoptimizer, self)._prepare_local(var_device, var_dtype, apply_state)
-        e2efs_lr_t = array_ops.identity(self._get_hyper('e2efs_lr', var_dtype))
+        e2efs_lr_t = array_ops.identity(self.e2efs_lr)
         apply_state[(var_device, var_dtype)]["e2efs_lr_t"] = e2efs_lr_t
 
         local_step = math_ops.cast(self.iterations + 1, var_dtype)
-        beta_1_t = array_ops.identity(self._get_hyper('e2efs_beta_1', var_dtype))
-        beta_2_t = array_ops.identity(self._get_hyper('e2efs_beta_2', var_dtype))
+        beta_1_t = array_ops.identity(self.e2efs_beta_1)
+        beta_2_t = array_ops.identity(self.e2efs_beta_2)
         beta_1_power = math_ops.pow(beta_1_t, local_step)
         beta_2_power = math_ops.pow(beta_2_t, local_step)
         e2efs_lr = (apply_state[(var_device, var_dtype)]['e2efs_lr_t'] *
