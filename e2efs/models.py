@@ -27,17 +27,16 @@ class E2EFSBase:
 
     def attach(self, model):
         self.e2efs_layer = self.get_layer(model.input_shape[1:])
-        #TODO si intento cuantizar self.model: ValueError: Quantizing a keras Model inside another keras Model is not supported.
+        #TODO se cuantiza model, pero no self.model
         self.model = self.e2efs_layer.add_to_model(model, input_shape=model.input_shape[1:])
         kwargs = model.optimizer.get_config()
-        #TODO si usamos mixed precision, el optimizador lossscaleoptimizer no esta soportado
-        #TODO si usamos mixed precision existe warning: WARNING:tensorflow:Mixed precision compatibility check (mixed_float16): WARNING
         if 'sgd' in type(model.optimizer).__name__.lower():
             opt = custom_optimizers.E2EFS_SGD(self.e2efs_layer, th=self.th, **kwargs)
         elif 'adam' in type(model.optimizer).__name__.lower():
             opt = custom_optimizers.E2EFS_Adam(self.e2efs_layer, th=self.th, **kwargs)
         elif 'rmsprop' in type(model.optimizer).__name__.lower():
             opt = custom_optimizers.E2EFS_RMSprop(self.e2efs_layer, th=self.th, **kwargs)
+        #TODO lossscaleoptimizer no funciona (no se reduce nnz)
         elif 'lossscaleoptimizer' in type(model.optimizer).__name__.lower():
             #TODO por el momento solo SGD dentro de lossscaleoptimizer
             inneropt = SGD(learning_rate=kwargs["inner_optimizer"]["config"]["learning_rate"], decay=kwargs["inner_optimizer"]["config"]["decay"],

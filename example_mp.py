@@ -8,6 +8,7 @@ from keras import optimizers, mixed_precision
 from e2efs import models
 from src.wrn.network_models import wrn164, three_layer_nn, three_layer_nn_q
 import numpy as np
+from keras.mixed_precision import LossScaleOptimizer
 
 #precision mixta mejor que precision fija a float16
 mixed_precision.set_global_policy('mixed_float16')
@@ -21,7 +22,7 @@ if __name__ == '__main__':
     y_test = to_categorical(y_test)
 
     model = three_layer_nn_q(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4, layer_dims=[50, 25, 10])
-    model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss='categorical_crossentropy')
+    model.compile(optimizer=LossScaleOptimizer(inner_optimizer=optimizers.SGD()), metrics=['acc'], loss='categorical_crossentropy')
 
     #TODO no funciona, nnz nunca se reduce
     fs_class = models.E2EFSSoft(n_features_to_select=39).attach(model).fit(

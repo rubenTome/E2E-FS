@@ -64,6 +64,7 @@ def three_layer_nn_q(input_shape, nclasses=2, bn=True, kernel_initializer='he_no
     #cuantizamos modelo
     if quantized:
         model = tfmot.quantization.keras.quantize_model(model)
+    #TODO se usan 2 optimizadores distintos en three_layer_nn
     #optimizer = optimizers.Adam(lr=K.cast_to_floatx(1e-4))
     optimizer = optimizers.SGD(learning_rate=K.cast_to_floatx(1e-1))
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
