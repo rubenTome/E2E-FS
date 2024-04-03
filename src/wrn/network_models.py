@@ -11,13 +11,16 @@ import tempfile
 import os
 from tensorflow import keras
 import tensorflow_model_optimization as tfmot
+from backend_config import bcknd
+
+K.backend = bcknd
 
 
 def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
                    dropout=0.0, dfs=False, regularization=5e-4, momentum=0.9):
 
     nfeatures = np.prod(input_shape)
-    tln_model = tln((nfeatures, ), nclasses, bn, kernel_initializer, K.cast_to_floatx(dropout), False, regularization, K.cast_to_floatx(momentum))
+    tln_model = tln((nfeatures, ), nclasses, bn, kernel_initializer, dropout, False, regularization, momentum)
     ip = Input(shape=input_shape)
     x = ip
     if dfs:
@@ -27,7 +30,7 @@ def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_norm
     output = tln_model(x)
     model = Model(ip, output)
 
-    optimizer = optimizers.SGD(learning_rate=K.cast_to_floatx(1e-1))
+    optimizer = optimizers.SGD(learning_rate=1e-1)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
 
     return model
@@ -51,9 +54,9 @@ def three_layer_nn_q(input_shape, nclasses=2, bn=True, kernel_initializer='he_no
         layersL.append(layers.Dense(layer_dim, use_bias=not bn, kernel_initializer=kernel_initializer,
                   kernel_regularizer=l2(regularization) if regularization > 0.0 else None))
         if bn:
-            layersL.append(layers.BatchNormalization(axis=channel_axis, momentum=K.cast_to_floatx(momentum), epsilon=K.cast_to_floatx(1e-5), gamma_initializer='ones'))
+            layersL.append(layers.BatchNormalization(axis=channel_axis, momentum=momentum, epsilon=1e-5, gamma_initializer='ones'))
         if dropout > 0.0:
-            layers.append(layers.Dropout(K.cast_to_floatx(dropout)))
+            layers.append(layers.Dropout(dropout))
         layersL.append(layers.Activation('relu'))
 
     layersL.append(layers.Dense(nclasses, use_bias=True, kernel_initializer=kernel_initializer,
@@ -65,8 +68,8 @@ def three_layer_nn_q(input_shape, nclasses=2, bn=True, kernel_initializer='he_no
     if quantized:
         model = tfmot.quantization.keras.quantize_model(model)
     #TODO se usan 2 optimizadores distintos en three_layer_nn
-    #optimizer = optimizers.Adam(lr=K.cast_to_floatx(1e-4))
-    optimizer = optimizers.SGD(learning_rate=K.cast_to_floatx(1e-1))
+    #optimizer = optimizers.Adam(lr=1e-4)
+    optimizer = optimizers.SGD(learning_rate=1e-1)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
 
     return model
@@ -98,12 +101,12 @@ def wrn164(
 
     for ocb, stride in zip(output_channel_basis, strides):
         x = wrn_block(
-            x, ocb * k, N, strides=(stride, stride), dropout=K.cast_to_floatx(dropout),
+            x, ocb * k, N, strides=(stride, stride), dropout=dropout,
             regularization=regularization, kernel_initializer=kernel_initializer, bn=bn
         )
 
     if bn:
-        x = BatchNormalization(axis=channel_axis, momentum=K.cast_to_floatx(0.9), epsilon=K.cast_to_floatx(1e-5), gamma_initializer='ones')(x)
+        x = BatchNormalization(axis=channel_axis, momentum=0.9, epsilon=1e-5, gamma_initializer='ones')(x)
     x = Activation('relu')(x)
 
     deep_features = GlobalAveragePooling2D()(x)
@@ -116,7 +119,7 @@ def wrn164(
 
     model = Model(ip, output)
 
-    optimizer = optimizers.SGD(learning_rate=K.cast_to_floatx(1e-1))
+    optimizer = optimizers.SGD(learning_rate=1e-1)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
 
     return model
@@ -154,7 +157,7 @@ def densenet(
                               padding='same',
                               kernel_initializer='he_normal')(y)
             if not data_augmentation:
-                y = layers.Dropout(K.cast_to_floatx(0.2))(y)
+                y = layers.Dropout(0.2)(y)
             y = layers.BatchNormalization()(y)
             y = layers.Activation('relu')(y)
             y = layers.Conv2D(growth_rate,
@@ -162,7 +165,7 @@ def densenet(
                               padding='same',
                               kernel_initializer='he_normal')(y)
             if not data_augmentation:
-                y = layers.Dropout(K.cast_to_floatx(0.2))(y)
+                y = layers.Dropout(0.2)(y)
             x = layers.concatenate([x, y])
 
         # no transition layer after the last dense block
@@ -178,7 +181,7 @@ def densenet(
                           padding='same',
                           kernel_initializer='he_normal')(y)
         if not data_augmentation:
-            y = layers.Dropout(K.cast_to_floatx(0.2))(y)
+            y = layers.Dropout(0.2)(y)
         x = layers.AveragePooling2D()(y)
 
     # add classifier on top
@@ -194,7 +197,7 @@ def densenet(
     # orig paper uses SGD but RMSprop works better for DenseNet
     model = models.Model(inputs=inputs, outputs=outputs)
     model.compile(loss='categorical_crossentropy',
-                  optimizer=optimizers.RMSprop(K.cast_to_floatx(1e-3)),
+                  optimizer=optimizers.RMSprop(1e-3),
                   metrics=['acc'])
 
     return model
@@ -258,7 +261,7 @@ def efficientnetB0(
     # orig paper uses SGD but RMSprop works better for DenseNet
     model = models.Model(inputs=inputs, outputs=outputs)
     model.compile(loss='categorical_crossentropy',
-                  optimizer=optimizers.SGD(K.cast_to_floatx(1e-4)),
+                  optimizer=optimizers.SGD(1e-4),
                   metrics=['acc'])
 
     return model
@@ -318,7 +321,7 @@ def efficientnetB1(
     # orig paper uses SGD but RMSprop works better for DenseNet
     model = models.Model(inputs=inputs, outputs=outputs)
     model.compile(loss='categorical_crossentropy',
-                  optimizer=optimizers.SGD(K.cast_to_floatx(1e-4)),
+                  optimizer=optimizers.SGD(1e-4),
                   metrics=['acc'])
 
     return model

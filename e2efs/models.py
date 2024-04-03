@@ -13,12 +13,15 @@ else:
     else:
         from e2efs import optimizers_tf29 as custom_optimizers
     from e2efs import e2efs_layers_tf2 as e2efs_layers
+from backend_config import bcknd
+
+K.backend = bcknd
 
 
 class E2EFSBase:
 
     def __init__(self, th=0.1):
-        self.th = K.cast_to_floatx(th)
+        self.th = th
         self.model = None
         self.e2efs_layer = None
 
@@ -66,7 +69,7 @@ class E2EFSBase:
             **kwargs):
         callbacks = callbacks or list()
         callbacks.append(custom_callbacks.E2EFSCallback(verbose=verbose))
-        self.model.fit(x, y, epochs=epochs, batch_size=batch_size, verbose=verbose, callbacks=callbacks, validation_split=K.cast_to_floatx(validation_split),
+        self.model.fit(x, y, epochs=epochs, batch_size=batch_size, verbose=verbose, callbacks=callbacks, validation_split=validation_split,
                        validation_data=validation_data, shuffle=shuffle, class_weight=class_weight, sample_weight=sample_weight,
                        initial_epoch=initial_epoch, steps_per_epoch=steps_per_epoch, validation_steps=validation_steps, **kwargs)
         return self
@@ -87,7 +90,7 @@ class E2EFSBase:
                     validation_steps=None,
                     **kwargs):
         self.model.fit(x, y, epochs=epochs, batch_size=batch_size, verbose=verbose, callbacks=callbacks,
-                       validation_split=K.cast_to_floatx(validation_split),
+                       validation_split=validation_split,
                        validation_data=validation_data, shuffle=shuffle, class_weight=class_weight,
                        sample_weight=sample_weight,
                        initial_epoch=initial_epoch, steps_per_epoch=steps_per_epoch, validation_steps=validation_steps,
@@ -122,15 +125,15 @@ class E2EFSSoft(E2EFSBase):
     
     def __init__(self, n_features_to_select, rho=0.25, T=10000, warmup_T=2000, th=.1, alpha_M=.99, epsilon=.001):
         self.n_features_to_select = n_features_to_select
-        self.rho = K.cast_to_floatx(rho)
+        self.rho = rho
         self.T = T
         self.warmup_T = warmup_T
-        self.alpha_M = K.cast_to_floatx(alpha_M)
-        self.epsilon = K.cast_to_floatx(epsilon)
+        self.alpha_M = alpha_M
+        self.epsilon = epsilon
         super(E2EFSSoft, self).__init__(th)
 
     def get_layer(self, input_shape):
-        return e2efs_layers.E2EFSSoft(self.n_features_to_select, T=self.T, warmup_T=self.warmup_T, decay_factor=K.cast_to_floatx(1. - self.rho),
+        return e2efs_layers.E2EFSSoft(self.n_features_to_select, T=self.T, warmup_T=self.warmup_T, decay_factor=1. - self.rho,
                                alpha_N=self.alpha_M, epsilon=self.epsilon, input_shape=input_shape)
 
 class E2EFS(E2EFSSoft):
@@ -145,8 +148,8 @@ class E2EFSRanking(E2EFSBase):
         self.n_features_to_select = 1
         self.T = T
         self.warmup_T = warmup_T
-        self.alpha_M = K.cast_to_floatx(alpha_M)
-        self.tau = K.cast_to_floatx(tau)
+        self.alpha_M = alpha_M
+        self.tau = tau
         super(E2EFSRanking, self).__init__(th)
 
     def get_layer(self, input_shape):

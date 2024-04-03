@@ -11,6 +11,7 @@ import numpy as np
 from keras.mixed_precision import LossScaleOptimizer
 
 #precision mixta mejor que precision fija a float16
+#TODO no funciona
 mixed_precision.set_global_policy('mixed_float16')
 
 if __name__ == '__main__':

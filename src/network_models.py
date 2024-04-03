@@ -3,7 +3,6 @@ from keras import backend as K, optimizers, layers
 from keras.regularizers import l1, l2
 from src.layers.dfs import DFS
 
-#TODO regularization no puede castearse a float16
 def fcnn(nfeatures, nclasses=2, layer_dims=None, bn=True, kernel_initializer='he_normal',
                  dropout=0.0, dfs=False, regularization=0.0, momentum=0.9):
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
@@ -17,9 +16,9 @@ def fcnn(nfeatures, nclasses=2, layer_dims=None, bn=True, kernel_initializer='he
         x = layers.Dense(layer_dim, use_bias=not bn, kernel_initializer=kernel_initializer,
                   kernel_regularizer=l2(regularization) if regularization > 0.0 else None)(x)
         if bn:
-            x = layers.BatchNormalization(axis=channel_axis, momentum=K.cast_to_floatx(momentum), epsilon=K.cast_to_floatx(1e-5), gamma_initializer='ones')(x)
+            x = layers.BatchNormalization(axis=channel_axis, momentum=momentum, epsilon=1e-5, gamma_initializer='ones')(x)
         if dropout > 0.0:
-            x = layers.Dropout(K.cast_to_floatx(dropout))(x)
+            x = layers.Dropout(dropout)(x)
         x = layers.Activation('relu')(x)
 
     x = layers.Dense(nclasses, use_bias=True, kernel_initializer=kernel_initializer,
@@ -28,7 +27,7 @@ def fcnn(nfeatures, nclasses=2, layer_dims=None, bn=True, kernel_initializer='he
 
     model = Model(input, output)
 
-    optimizer = optimizers.Adam(lr=K.cast_to_floatx(1e-4))
+    optimizer = optimizers.Adam(lr=1e-4)
     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
 
     return model

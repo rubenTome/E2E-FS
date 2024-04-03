@@ -5,6 +5,10 @@ import tensorflow as tf
 from tensorflow.python.training import gen_training_ops
 from tensorflow.python.ops import array_ops, math_ops
 from tensorflow.python.framework import ops
+from backend_config import bcknd
+
+K.backend = bcknd
+
 
 def get_gradients(self, tape, loss, var_list, grad_loss=None):
         """Called in `minimize` to compute gradients from loss."""
@@ -20,14 +24,10 @@ def get_gradients(self, tape, loss, var_list, grad_loss=None):
         e2efs_grad_corrected = e2efs_grad / (tf.norm(e2efs_grad) + K.epsilon())
         combined_e2efs_grad = (1. - self.e2efs_layer.moving_factor) * e2efs_grad_corrected + \
                               self.e2efs_layer.moving_factor * e2efs_regularizer_grad_corrected
-        if(K.floatx() == 'float16'):
-            epsilon = K.cast_to_floatx(0.000976562)
-        else:
-            epsilon = K.epsilon()
         combined_e2efs_grad = K.sign(
-            self.e2efs_layer.moving_factor) * K.minimum(self.th, K.max(
+            self.e2efs_layer.moving_factor) * K.minimum(K.cast_to_floatx(self.th), K.max(
             K.abs(combined_e2efs_grad))) * combined_e2efs_grad / K.max(
-            K.abs(combined_e2efs_grad) + epsilon)
+            K.abs(combined_e2efs_grad) + K.epsilon())
         grads[0] = combined_e2efs_grad
         return list(zip(grads, var_list))
 
@@ -76,13 +76,13 @@ class E2EFS_SGD(optimizers.SGD):
     def __init__(self, e2efs_layer, th=.1, e2efs_lr=0.01, beta_1=0.5, beta_2=0.999,
                  amsgrad=False, **kwargs):
         super(E2EFS_SGD, self).__init__(**kwargs)
-        self._set_hyper('e2efs_lr', K.cast_to_floatx(e2efs_lr))
-        self._set_hyper('e2efs_beta_1', K.cast_to_floatx(beta_1))
-        self._set_hyper('e2efs_beta_2', K.cast_to_floatx(beta_2))
+        self._set_hyper('e2efs_lr', e2efs_lr)
+        self._set_hyper('e2efs_beta_1', beta_1)
+        self._set_hyper('e2efs_beta_2', beta_2)
         self.epsilon = K.epsilon()
         self.amsgrad = amsgrad
         self.e2efs_layer = e2efs_layer
-        self.th = K.cast_to_floatx(th)
+        self.th = th
 
     def _create_slots(self, var_list):
         # Create slots for the first and second moments.
@@ -148,13 +148,13 @@ class E2EFS_Adam(optimizers.Adam):
     def __init__(self, e2efs_layer, th=.1, e2efs_lr=0.01, beta_1=0.5, beta_2=0.999,
                  amsgrad=False, **kwargs):
         super(E2EFS_Adam, self).__init__(**kwargs)
-        self._set_hyper('e2efs_lr', K.cast_to_floatx(e2efs_lr))
-        self._set_hyper('e2efs_beta_1', K.cast_to_floatx(beta_1))
-        self._set_hyper('e2efs_beta_2', K.cast_to_floatx(beta_2))
+        self._set_hyper('e2efs_lr', (e2efs_lr))
+        self._set_hyper('e2efs_beta_1', (beta_1))
+        self._set_hyper('e2efs_beta_2', (beta_2))
         self.epsilon = K.epsilon()
         self.amsgrad = amsgrad
         self.e2efs_layer = e2efs_layer
-        self.th = K.cast_to_floatx(th)
+        self.th = th
 
     def _create_slots(self, var_list):
         # Create slots for the first and second moments.
@@ -220,13 +220,13 @@ class E2EFS_RMSprop(optimizers.RMSprop):
     def __init__(self, e2efs_layer, th=.1, e2efs_lr=0.01, beta_1=0.5, beta_2=0.999,
                  amsgrad=False, **kwargs):
         super(E2EFS_RMSprop, self).__init__(**kwargs)
-        self._set_hyper('e2efs_lr', K.cast_to_floatx(e2efs_lr))
-        self._set_hyper('e2efs_beta_1', K.cast_to_floatx(beta_1))
-        self._set_hyper('e2efs_beta_2', K.cast_to_floatx(beta_2))
+        self._set_hyper('e2efs_lr', e2efs_lr)
+        self._set_hyper('e2efs_beta_1', beta_1)
+        self._set_hyper('e2efs_beta_2', beta_2)
         self.epsilon = K.epsilon()
         self.amsgrad = amsgrad
         self.e2efs_layer = e2efs_layer
-        self.th = K.cast_to_floatx(th)
+        self.th = th
 
     def _create_slots(self, var_list):
         # Create slots for the first and second moments.
@@ -296,13 +296,13 @@ class E2EFS_Lossscaleoptimizer(LossScaleOptimizer):
         else:
             super(E2EFS_Lossscaleoptimizer, self).__init__(inner_optimizer)
         # TODO lossscaleoptimizer no es un legacy optimizer, no se puede usar _set_hyper
-        self.e2efs_lr = K.cast_to_floatx(e2efs_lr)
-        self.e2efs_beta_1 = K.cast_to_floatx(beta_1)
-        self.e2efs_beta_2 = K.cast_to_floatx(beta_2)
+        self.e2efs_lr = e2efs_lr
+        self.e2efs_beta_1 = beta_1
+        self.e2efs_beta_2 = beta_2
         self.epsilon = K.epsilon()
         self.amsgrad = amsgrad
         self.e2efs_layer = e2efs_layer
-        self.th = K.cast_to_floatx(th)
+        self.th = th
 
     def _create_slots(self, var_list):
         super(E2EFS_Lossscaleoptimizer, self)._create_slots(var_list)

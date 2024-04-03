@@ -24,7 +24,8 @@ class E2EFSCallback(Callback):
                 ', zeros : ', (e2efs_kernel == 0.).sum(),
                 ', T : ', K.eval(layer.moving_T),
                 ', sum_gamma : ', e2efs_kernel.sum(),
-                ', max_gamma : ', e2efs_kernel.max()
+                ', max_gamma : ', e2efs_kernel.max(),
+                ", epsilon : ", K.epsilon()
             )
         if self.early_stop and (e2efs_kernel > 0.).sum() <= units:
             self.model.stop_training = True

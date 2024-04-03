@@ -1,5 +1,8 @@
 from keras import backend as K, layers, models, initializers, regularizers
 import numpy as np
+from backend_config import bcknd
+
+K.backend = bcknd
 
 
 class E2EFS_Base(layers.Layer):
@@ -21,7 +24,7 @@ class E2EFS_Base(layers.Layer):
         self.kernel_regularizer = kernel_regularizer
         self.supports_masking = True
         self.kernel = None
-        self.heatmap_momentum = K.cast_to_floatx(heatmap_momentum)
+        self.heatmap_momentum = heatmap_momentum
 
     def build(self, input_shape):
         assert len(input_shape) >= 2
@@ -49,8 +52,8 @@ class E2EFS_Base(layers.Layer):
         if self.kernel_activation is not None:
             kernel = self.kernel_activation(kernel)
         kernel_clipped = K.reshape(kernel, shape=inputs.shape[1:])
-        aux = K.cast_to_floatx(inputs)#TODO casteo para mixed precision
-        output = aux * kernel_clipped
+
+        output = inputs * kernel_clipped
 
         if training in {0, False}:
             return output
@@ -60,10 +63,8 @@ class E2EFS_Base(layers.Layer):
         return output
 
     def _get_update_list(self, kernel):
-        aux = K.cast_to_floatx(self.moving_heatmap)#TODO casteo para mixed precision
-        aux2 = K.cast_to_floatx((1. - self.moving_heatmap))#TODO casteo para mixed precision
         self.moving_heatmap.assign(
-            self.heatmap_momentum * aux + aux2 * K.sign(kernel)
+            self.heatmap_momentum * self.moving_heatmap + (1. - self.moving_heatmap) * K.sign(kernel)
         )
 
     def add_to_model(self, model, input_shape, activation=None):
@@ -97,14 +98,14 @@ class E2EFSSoft(E2EFS_Base):
         if 'input_shape' not in kwargs and 'input_dim' in kwargs:
             kwargs['input_shape'] = (kwargs.pop('input_dim'),)
 
-        self.dropout = K.cast_to_floatx(dropout)
-        self.decay_factor = K.cast_to_floatx(decay_factor)
+        self.dropout = dropout
+        self.decay_factor = decay_factor
         self.T = T
         self.warmup_T = warmup_T
-        self.start_alpha = K.cast_to_floatx(start_alpha)
+        self.start_alpha = start_alpha
         self.cont_T = 0
-        self.alpha_M = K.cast_to_floatx(alpha_N)
-        self.epsilon = K.cast_to_floatx(epsilon)
+        self.alpha_M = alpha_N
+        self.epsilon = epsilon
         super(E2EFSSoft, self).__init__(units=units,
                                         kernel_regularizer=kernel_regularizer,
                                         kernel_initializer=kernel_initializer,
@@ -137,8 +138,7 @@ class E2EFSSoft(E2EFS_Base):
 
         def kernel_activation(x):
             t = x / K.max(K.abs(x))
-            aux = K.cast_to_floatx(x)#TODO casteo para mixed precision
-            s = K.switch(K.less(t, K.epsilon()), K.zeros_like(x), aux)
+            s = K.switch(K.less(t, K.epsilon()), K.zeros_like(x), x)
             # s /= K.stop_gradient(K.max(s))
             return s
 
@@ -168,7 +168,7 @@ class E2EFSSoft(E2EFS_Base):
             l_units = loss_units(x)
             t = x / K.max(K.abs(x))
             p = K.switch(K.less(t, K.epsilon()), K.zeros_like(x), x)
-            cost = 0.
+            cost = K.cast_to_floatx(0.)
             cost += K.sum(p * (1. - p)) + 2. * l_units
             # cost += K.sum(K.relu(x - 1.))
             return cost
@@ -178,20 +178,16 @@ class E2EFSSoft(E2EFS_Base):
 
     def _get_update_list(self, kernel):
         super(E2EFSSoft, self)._get_update_list(kernel)
-        aux = K.cast_to_floatx((1. - self.start_alpha))#TODO casteo para mixed precision
-        aux2 = K.cast_to_floatx((self.moving_T - self.warmup_T))#TODO casteo para mixed precision
         self.moving_factor.assign(
             K.switch(K.less(self.moving_T, self.warmup_T),
-                     self.start_alpha,
-                     K.minimum(self.alpha_M,
-                               self.start_alpha + aux * aux2 / self.T))
+                     K.cast_to_floatx(self.start_alpha),
+                     K.minimum(K.cast_to_floatx(self.alpha_M),
+                               self.start_alpha + (1. - self.start_alpha) * (self.moving_T - self.warmup_T) / self.T))
         )
         self.moving_T.assign_add(1.)
-        aux = K.cast_to_floatx(self.moving_decay + self.epsilon)#TODO casteo para mixed precision
-        aux2 = K.cast_to_floatx(self.moving_decay)#TODO casteo para mixed precision
         self.moving_decay.assign(
-            K.switch(K.less(self.moving_factor, self.alpha_M), aux2,
-                     K.maximum(K.cast_to_floatx(.75), aux))
+            K.switch(K.less(self.moving_factor, self.alpha_M), self.moving_decay,
+                     K.maximum(K.cast_to_floatx(.75), self.moving_decay + self.epsilon))
         )
 
 
@@ -228,13 +224,13 @@ class E2EFSRanking(E2EFS_Base):
         if 'input_shape' not in kwargs and 'input_dim' in kwargs:
             kwargs['input_shape'] = (kwargs.pop('input_dim'),)
 
-        self.dropout = K.cast_to_floatx(dropout)
+        self.dropout = dropout
         self.T = T
         self.warmup_T = warmup_T
-        self.start_alpha = K.cast_to_floatx(start_alpha)
+        self.start_alpha = start_alpha
         self.cont_T = 0
-        self.speedup = K.cast_to_floatx(speedup)
-        self.alpha_M = K.cast_to_floatx(alpha_M)
+        self.speedup = speedup
+        self.alpha_M = alpha_M
         super(E2EFSRanking, self).__init__(units=units,
                                         kernel_regularizer=kernel_regularizer,
                                         kernel_initializer=kernel_initializer,
@@ -304,7 +300,7 @@ class E2EFSRanking(E2EFS_Base):
             l_units = loss_units(x)
             t = x / K.max(K.abs(x))
             p = K.switch(K.less(t, K.epsilon()), K.zeros_like(x), x)
-            cost = 0.
+            cost = K.cast_to_floatx(0.)
             cost += K.sum(p) - K.sum(K.square(p)) + 2. * l_units
             # cost += K.sum(p * (1. - p)) + l_units
             # cost += K.sum(K.relu(x - 1.))
@@ -324,9 +320,9 @@ class E2EFSRanking(E2EFS_Base):
         self.moving_T.assign_add(1.)
         self.moving_units.assign(
             K.switch(K.less_equal(self.moving_T, self.warmup_T),
-                     (1. - self.start_alpha) * np.prod(K.int_shape(kernel)),
+                     K.cast_to_floatx((1. - self.start_alpha) * np.prod(K.int_shape(kernel))),
                      K.maximum(self.alpha_M,
-                               np.prod(K.int_shape(kernel)) * K.pow(1. / np.prod(K.int_shape(kernel)),
+                               np.prod(K.int_shape(kernel)) * K.pow(K.cast_to_floatx(1. / np.prod(K.int_shape(kernel))),
                                                                     self.speedup * (
                                                                                 self.moving_T - self.warmup_T) / self.T)))
         )
