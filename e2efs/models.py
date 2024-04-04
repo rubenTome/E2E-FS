@@ -1,3 +1,5 @@
+import keras
+
 from e2efs import callbacks as custom_callbacks
 from keras import backend as K
 from keras.optimizers import SGD

@@ -115,19 +115,19 @@ class E2EFSSoft(E2EFS_Base):
         self.moving_units = self.add_weight(shape=(),
                                             name='moving_units',
                                             initializer=initializers.constant(self.units),
-                                            trainable=False)
+                                            trainable=False, dtype='float32')
         self.moving_T = self.add_weight(shape=(),
                                         name='moving_T',
                                         initializer='zeros',
-                                        trainable=False)
+                                        trainable=False, dtype='float32')
         self.moving_factor = self.add_weight(shape=(),
                                              name='moving_factor',
                                              initializer=initializers.constant([0.]),
-                                             trainable=False)
+                                             trainable=False, dtype='float32')
         self.moving_decay = self.add_weight(shape=(),
                                              name='moving_decay',
                                              initializer=initializers.constant(self.decay_factor),
-                                             trainable=False)
+                                             trainable=False, dtype='float32')
         self.cont = self.add_weight(shape=(),
                                     name='cont',
                                     initializer='ones',
@@ -151,10 +151,10 @@ class E2EFSSoft(E2EFS_Base):
             x = K.switch(K.less(t, K.epsilon()), K.zeros_like(x), x)
             m = K.sum(K.cast(K.greater(x, 0.), K.floatx()))
             sum_x = K.sum(x)
-            moving_units = K.switch(K.less_equal(m, self.units), m,
-                                    (1. - self.moving_decay) * self.moving_units)
+            moving_units = K.switch(K.less_equal(m, K.cast_to_floatx(self.units)), m,
+                                    (1. - K.cast_to_floatx(self.moving_decay)) * K.cast_to_floatx(self.moving_units))
             epsilon_minus = 0.
-            epsilon_plus = K.switch(K.less_equal(m, self.units), self.moving_units, 0.)
+            epsilon_plus = K.switch(K.less_equal(m, K.cast_to_floatx(self.units)), K.cast_to_floatx(self.moving_units), 0.)
             return K.relu(moving_units - sum_x - epsilon_minus) + K.relu(sum_x - moving_units - epsilon_plus)
 
         # self.kernel_regularizer = lambda x: regularizers.l2(.01)(K.relu(x))

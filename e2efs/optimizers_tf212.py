@@ -48,17 +48,20 @@ class E2EFS_SGD(optimizers.SGD):
         Args:
           var_list: list of model variables to build SGD variables on.
         """
+
         super().build(var_list)
         self._built = False
+        self.velocities = []
+        self.vhats = []
         for var in var_list:
             if 'e2efs' in var.name:
-                self.e2efs_v = self.add_variable_from_reference(
+                self.velocities.append(self.add_variable_from_reference(
                     model_variable=var, variable_name="v"
-                )
+                ))
                 if self.e2efs_amsgrad:
-                    self.e2efs_vhat = self.add_variable_from_reference(
+                    self.vhats.append(self.add_variable_from_reference(
                         model_variable=var, variable_name="vhat"
-                    )
+                    ))
         self._built = True
 
     def update_step(self, gradient, variable):
@@ -79,7 +82,7 @@ class E2EFS_SGD(optimizers.SGD):
 
         var_key = self._var_key(variable)
         m = self.momentums[self._index_dict[var_key]]
-        v = self.e2efs_v
+        v = self.velocities[self._index_dict[var_key]]
 
         alpha = lr * tf.sqrt(1 - beta_2_power) / (1 - beta_1_power)
 
@@ -99,7 +102,7 @@ class E2EFS_SGD(optimizers.SGD):
                 )
             )
             if self.e2efs_amsgrad:
-                v_hat = self.e2efs_vhat
+                v_hat = self.vhats[self._index_dict[var_key]]
                 v_hat.assign(tf.maximum(v_hat, v))
                 v = v_hat
             variable.assign_sub((m * alpha) / (tf.sqrt(v) + self.e2efs_epsilon))
@@ -108,7 +111,7 @@ class E2EFS_SGD(optimizers.SGD):
             m.assign_add((gradient - m) * (1 - beta_1))
             v.assign_add((tf.square(gradient) - v) * (1 - beta_2))
             if self.e2efs_amsgrad:
-                v_hat = self.e2efs_vhat
+                v_hat = self.vhats[self._index_dict[var_key]]
                 v_hat.assign(tf.maximum(v_hat, v))
                 v = v_hat
             variable.assign_sub((m * alpha) / (tf.sqrt(v) + self.e2efs_epsilon))
