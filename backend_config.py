@@ -1,6 +1,6 @@
 from keras import backend as K
 
-floatx = "float32"
+floatx = "float16"
 
 K.set_floatx(floatx)
 if floatx == "float16":

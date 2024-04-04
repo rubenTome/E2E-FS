@@ -2,6 +2,7 @@ from codecarbon import EmissionsTracker
 from backend_config import floatx
 tracker = EmissionsTracker(log_level="critical", output_file="emissions_" + floatx + ".csv")
 tracker.start()
+from keras import backend as K
 from keras.datasets import mnist
 from keras.callbacks import LearningRateScheduler
 from keras.utils import to_categorical

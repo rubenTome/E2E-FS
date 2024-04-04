@@ -9,7 +9,7 @@ from keras import optimizers
 from e2efs import models
 from src.wrn.network_models import wrn164, three_layer_nn, three_layer_nn_q
 import numpy as np
-import tensorflow_model_optimization as tfmot
+#import tensorflow_model_optimization as tfmot
 
 if __name__ == '__main__':
 

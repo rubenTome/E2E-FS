@@ -10,8 +10,10 @@ if version.parse(tf.__version__) < version.parse('2.0'):
 else:
     if version.parse(tf.__version__) < version.parse('2.9'):
         from e2efs import optimizers_tf2 as custom_optimizers
-    else:
+    elif version.parse(tf.__version__) < version.parse('2.12'):
         from e2efs import optimizers_tf29 as custom_optimizers
+    else:
+        from e2efs import optimizers_tf212 as custom_optimizers
     from e2efs import e2efs_layers_tf2 as e2efs_layers
 from backend_config import bcknd
 
