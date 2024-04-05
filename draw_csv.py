@@ -21,7 +21,6 @@ for file in fileNames:
     df = pd.read_csv(PATH + file, usecols=usecols)
     keys = df.keys()
     df["accuracy"] = df["accuracy"] * 100
-    df["duration"] = df["duration"] / 10
     df["emissions"] = df["emissions"] * 10000
 
     offset = width * multiplier
