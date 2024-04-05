@@ -11,6 +11,7 @@ import tempfile
 import os
 from tensorflow import keras
 from backend_config import bcknd
+import tensorflow_model_optimization as tfmot
 
 K.backend = bcknd
 

@@ -12,6 +12,9 @@ from keras.mixed_precision import LossScaleOptimizer
 
 #precision mixta mejor que precision fija a float16
 #TODO no funciona
+#  File "/home/lidia/Documents/ruben/E2E-FS/e2efs/e2efs_layers_tf2.py", line 161, in loss_units
+#    return K.relu(moving_units - sum_x - epsilon_minus) + K.relu(sum_x - moving_units - epsilon_plus)
+#tensorflow.python.framework.errors_impl.InvalidArgumentError: cannot compute Sub as input #1(zero-based) was expected to be a float tensor but is a half tensor [Op:Sub]
 mixed_precision.set_global_policy('mixed_float16')
 
 if __name__ == '__main__':
@@ -25,7 +28,6 @@ if __name__ == '__main__':
     model = three_layer_nn_q(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4, layer_dims=[50, 25, 10])
     model.compile(optimizer=LossScaleOptimizer(inner_optimizer=optimizers.SGD()), metrics=['acc'], loss='categorical_crossentropy')
 
-    #TODO no funciona, nnz nunca se reduce
     fs_class = models.E2EFSSoft(n_features_to_select=39).attach(model).fit(
         x_train, y_train, batch_size=128, validation_data=(x_test, y_test), verbose=2
     )
