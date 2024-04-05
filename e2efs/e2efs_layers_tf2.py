@@ -118,23 +118,23 @@ class E2EFSSoft(E2EFS_Base):
         self.moving_units = self.add_weight(shape=(),
                                             name='moving_units',
                                             initializer=initializers.constant(self.units),
-                                            trainable=False)
+                                            trainable=False, dtype='float32')
         self.moving_T = self.add_weight(shape=(),
                                         name='moving_T',
                                         initializer='zeros',
-                                        trainable=False)
+                                        trainable=False, dtype='float32')
         self.moving_factor = self.add_weight(shape=(),
                                              name='moving_factor',
                                              initializer=initializers.constant([0.]),
-                                             trainable=False)
+                                             trainable=False, dtype='float32')
         self.moving_decay = self.add_weight(shape=(),
                                              name='moving_decay',
                                              initializer=initializers.constant(self.decay_factor),
-                                             trainable=False)
+                                             trainable=False, dtype='float32')
         self.cont = self.add_weight(shape=(),
                                     name='cont',
                                     initializer='ones',
-                                    trainable=False)
+                                    trainable=False, dtype='float32')
 
         def kernel_activation(x):
             t = x / K.max(K.abs(x))
@@ -155,9 +155,9 @@ class E2EFSSoft(E2EFS_Base):
             m = K.sum(K.cast(K.greater(x, 0.), K.floatx()))
             sum_x = K.sum(x)
             moving_units = K.switch(K.less_equal(m, self.units), m,
-                                    (1. - self.moving_decay) * self.moving_units)
+                                    K.cast_to_floatx((1. - self.moving_decay) * self.moving_units))
             epsilon_minus = 0.
-            epsilon_plus = K.switch(K.less_equal(m, self.units), self.moving_units, K.cast_to_floatx(0.))
+            epsilon_plus = K.switch(K.less_equal(m, self.units), K.cast_to_floatx(self.moving_units), K.cast_to_floatx(0.))
             return K.relu(moving_units - sum_x - epsilon_minus) + K.relu(sum_x - moving_units - epsilon_plus)
 
         # self.kernel_regularizer = lambda x: regularizers.l2(.01)(K.relu(x))
@@ -180,14 +180,14 @@ class E2EFSSoft(E2EFS_Base):
         super(E2EFSSoft, self)._get_update_list(kernel)
         self.moving_factor.assign(
             K.switch(K.less(self.moving_T, self.warmup_T),
-                     K.cast_to_floatx(self.start_alpha),
-                     K.minimum(K.cast_to_floatx(self.alpha_M),
+                     self.start_alpha,
+                     K.minimum(self.alpha_M,
                                self.start_alpha + (1. - self.start_alpha) * (self.moving_T - self.warmup_T) / self.T))
         )
         self.moving_T.assign_add(1.)
         self.moving_decay.assign(
             K.switch(K.less(self.moving_factor, self.alpha_M), self.moving_decay,
-                     K.maximum(K.cast_to_floatx(.75), self.moving_decay + self.epsilon))
+                     K.maximum(.75, self.moving_decay + self.epsilon))
         )
 
 
@@ -243,19 +243,19 @@ class E2EFSRanking(E2EFS_Base):
         self.moving_units = self.add_weight(shape=(),
                                             name='moving_units',
                                             initializer=initializers.constant(self.units),
-                                            trainable=False)
+                                            trainable=False, dtype='float32')
         self.moving_T = self.add_weight(shape=(),
                                         name='moving_T',
                                         initializer='zeros',
-                                        trainable=False)
+                                        trainable=False, dtype='float32')
         self.moving_factor = self.add_weight(shape=(),
                                              name='moving_factor',
                                              initializer=initializers.constant([0.]),
-                                             trainable=False)
+                                             trainable=False, dtype='float32')
         self.cont = self.add_weight(shape=(),
                                     name='cont',
                                     initializer='ones',
-                                    trainable=False)
+                                    trainable=False, dtype='float32')
 
         def apply_dropout(x, rate, refactor=False):
             if 0. < self.dropout < 1.:
@@ -320,9 +320,9 @@ class E2EFSRanking(E2EFS_Base):
         self.moving_T.assign_add(1.)
         self.moving_units.assign(
             K.switch(K.less_equal(self.moving_T, self.warmup_T),
-                     K.cast_to_floatx((1. - self.start_alpha) * np.prod(K.int_shape(kernel))),
+                     (1. - self.start_alpha) * np.prod(K.int_shape(kernel)),
                      K.maximum(self.alpha_M,
-                               np.prod(K.int_shape(kernel)) * K.pow(K.cast_to_floatx(1. / np.prod(K.int_shape(kernel))),
+                               np.prod(K.int_shape(kernel)) * K.pow(1. / np.prod(K.int_shape(kernel)),
                                                                     self.speedup * (
                                                                                 self.moving_T - self.warmup_T) / self.T)))
         )

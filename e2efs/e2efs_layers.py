@@ -119,7 +119,7 @@ class E2EFSSoft(E2EFS_Base):
         self.moving_T = self.add_weight(shape=(),
                                         name='moving_T',
                                         initializer='zeros',
-                                        trainable=False, dtype='float32')
+                                        trainable=False, dtype='int')
         self.moving_factor = self.add_weight(shape=(),
                                              name='moving_factor',
                                              initializer=initializers.constant([0.]),
