@@ -8,7 +8,7 @@ PATH = str(Path.cwd()) + "/"
 fileNames = os.listdir(PATH)
 fileNames = [file for file in fileNames if '.csv' in file]
 
-usecols = [0, 1, 5, 6]
+usecols = [3, 4, 31, 32]
 x = np.arange(len(usecols))
 width = 0.15
 multiplier = 0
@@ -31,7 +31,7 @@ for file in fileNames:
 ax.set_ylabel('Values')
 ax.set_title('Files')
 ax.set_xticks(x + width, keys)
-ax.legend(loc='upper left', ncols=3)
+ax.legend(loc='upper left')
 ax.set_ylim(0, 250)
 
 plt.show()
