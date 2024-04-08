@@ -6,7 +6,7 @@ from keras.callbacks import LearningRateScheduler
 from keras.utils import to_categorical
 from keras import optimizers, mixed_precision
 from e2efs import models
-from src.wrn.network_models import wrn164, three_layer_nn, three_layer_nn_q
+from src.wrn.network_models import three_layer_nn_q
 import numpy as np
 from keras.mixed_precision import LossScaleOptimizer
 
