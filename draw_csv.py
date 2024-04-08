@@ -8,7 +8,7 @@ PATH = str(Path.cwd()) + "/"
 fileNames = os.listdir(PATH)
 fileNames = [file for file in fileNames if '.csv' in file]
 
-usecols = [3, 4, 31, 32]
+usecols = ["duration", "emissions", "accuracy", "feature_mask"]
 x = np.arange(len(usecols))
 width = 0.15
 multiplier = 0
