@@ -4,8 +4,8 @@ import os
 from backend_config import floatx
 
 PATH = str(Path.cwd()) + "/"
+SCRIPT = "example.py"
 
-script = "example.py"
 output = "emissions_" + floatx + ".csv"
 usecols = ["duration", "emissions", "accuracy", "feature_mask"]
 acum = {
@@ -17,11 +17,11 @@ acum = {
 deletebaks = True
 n = 10
 
-print("EXECUTING ", script)
+print("EXECUTING ", SCRIPT)
 
 for i in range(n):
     print("LOOP: N=", i)
-    exec(open(script).read())
+    exec(open(SCRIPT).read())
     df = pd.read_csv(PATH + output, usecols=usecols)
     acum["duration"].append(df["duration"])
     acum["emissions"].append(df["emissions"])
