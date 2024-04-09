@@ -1,5 +1,5 @@
 from codecarbon import EmissionsTracker
-tracker = EmissionsTracker(log_level="critical", output_file="emissions_mp.csv")
+tracker = EmissionsTracker(log_level="warning", output_file="emissions_mp.csv")
 tracker.start()
 from keras.datasets import mnist
 from keras.callbacks import LearningRateScheduler

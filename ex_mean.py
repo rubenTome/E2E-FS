@@ -1,11 +1,12 @@
 import pandas as pd
 from pathlib import Path
 import os
+from backend_config import floatx
 
 PATH = str(Path.cwd()) + "/"
 
 script = "example.py"
-output = "emissions_float32.csv"
+output = "emissions_" + floatx + ".csv"
 usecols = ["duration", "emissions", "accuracy", "feature_mask"]
 acum = {
     "duration":[],
@@ -32,7 +33,7 @@ df = pd.DataFrame(columns=usecols)
 for i in range(len(usecols)):
     df[usecols[i]] = sum(acum[usecols[i]]) / len(acum[usecols[i]])
 
-df.to_csv(script.split(".")[0] + "_mean" + str(n) + ".csv", index=False)
+df.to_csv(output.split(".")[0] + "_mean" + str(n) + ".csv", index=False)
 
 if deletebaks:
     for item in os.listdir(PATH):
