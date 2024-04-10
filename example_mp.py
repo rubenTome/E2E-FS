@@ -12,6 +12,7 @@ import numpy as np
 from keras.mixed_precision import LossScaleOptimizer
 import pandas as pd
 
+
 mixed_precision.set_global_policy('mixed_float16')
 
 if __name__ == '__main__':

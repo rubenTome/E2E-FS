@@ -6,7 +6,6 @@ from keras.optimizers import SGD
 import tensorflow as tf
 import numpy as np
 from packaging import version
-from keras.mixed_precision import LossScaleOptimizer
 if version.parse(tf.__version__) < version.parse('2.0'):
     from e2efs import optimizers as custom_optimizers
     from e2efs import e2efs_layers
@@ -47,12 +46,9 @@ class E2EFSBase:
         #TODO lossscaleoptimizer no funciona (no se reduce nnz)
         elif 'lossscaleoptimizer' in type(model.optimizer).__name__.lower():
             #TODO por el momento solo SGD dentro de lossscaleoptimizer
-            inneropt = custom_optimizers.E2EFS_SGD(self.e2efs_layer, th=self.th, 
-                learning_rate=kwargs["inner_optimizer"]["config"]["learning_rate"],
-                decay=kwargs["inner_optimizer"]["config"]["decay"],
-                momentum=kwargs["inner_optimizer"]["config"]["momentum"], 
-                nesterov=kwargs["inner_optimizer"]["config"]["nesterov"])
-            opt = LossScaleOptimizer(inner_optimizer=inneropt)
+            inneropt = SGD(learning_rate=kwargs["inner_optimizer"]["config"]["learning_rate"], decay=kwargs["inner_optimizer"]["config"]["decay"],
+                momentum=kwargs["inner_optimizer"]["config"]["momentum"], nesterov=kwargs["inner_optimizer"]["config"]["nesterov"])
+            opt = custom_optimizers.E2EFS_Lossscaleoptimizer(inner_optimizer=inneropt, e2efs_layer=self.e2efs_layer, th=self.th, kwargs=kwargs)
         else:
             raise Exception('Optimizer not supported. Contact the authors if you need it')
         compile_args = model._get_compile_args()
