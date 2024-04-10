@@ -22,6 +22,7 @@ for file in fileNames:
     keys = df.keys()
     df["accuracy"] = df["accuracy"] * 100
     df["emissions"] = df["emissions"] * 10000
+    df["duration"] = df["duration"] / 10
 
     offset = width * multiplier
     rects = ax.bar(x + offset, df.values[0], width, label=file)
