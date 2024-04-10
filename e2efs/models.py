@@ -47,9 +47,12 @@ class E2EFSBase:
         #TODO lossscaleoptimizer no funciona (no se reduce nnz)
         elif 'lossscaleoptimizer' in type(model.optimizer).__name__.lower():
             #TODO por el momento solo SGD dentro de lossscaleoptimizer
-            inneropt = SGD(learning_rate=kwargs["inner_optimizer"]["config"]["learning_rate"], decay=kwargs["inner_optimizer"]["config"]["decay"],
-                momentum=kwargs["inner_optimizer"]["config"]["momentum"], nesterov=kwargs["inner_optimizer"]["config"]["nesterov"])
-            opt = LossScaleOptimizer(inneropt)
+            inneropt = custom_optimizers.E2EFS_SGD(self.e2efs_layer, th=self.th,
+                learning_rate=kwargs["inner_optimizer"]["config"]["learning_rate"],
+                decay=kwargs["inner_optimizer"]["config"]["decay"],
+                momentum=kwargs["inner_optimizer"]["config"]["momentum"],
+                nesterov=kwargs["inner_optimizer"]["config"]["nesterov"])
+            opt = LossScaleOptimizer(inner_optimizer=inneropt)
         else:
             raise Exception('Optimizer not supported. Contact the authors if you need it')
         compile_args = model._get_compile_args()
