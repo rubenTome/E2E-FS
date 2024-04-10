@@ -53,7 +53,7 @@ class E2EFS_Base(layers.Layer):
             kernel = self.kernel_activation(kernel)
         kernel_clipped = K.reshape(kernel, shape=inputs.shape[1:])
 
-        output = inputs * kernel_clipped
+        output = K.cast_to_floatx(inputs) * kernel_clipped
 
         if training in {0, False}:
             return output
@@ -64,7 +64,7 @@ class E2EFS_Base(layers.Layer):
 
     def _get_update_list(self, kernel):
         self.moving_heatmap.assign(
-            self.heatmap_momentum * self.moving_heatmap + (1. - self.moving_heatmap) * K.sign(kernel)
+            K.cast_to_floatx(self.heatmap_momentum * self.moving_heatmap) + K.cast_to_floatx(1. - self.moving_heatmap) * K.sign(kernel)
         )
 
     def add_to_model(self, model, input_shape, activation=None):
@@ -182,12 +182,12 @@ class E2EFSSoft(E2EFS_Base):
             K.switch(K.less(self.moving_T, self.warmup_T),
                      self.start_alpha,
                      K.minimum(self.alpha_M,
-                               self.start_alpha + (1. - self.start_alpha) * (self.moving_T - self.warmup_T) / self.T))
+                               K.cast_to_floatx(self.start_alpha + (1. - self.start_alpha) * (self.moving_T - self.warmup_T) / self.T)))
         )
         self.moving_T.assign_add(1.)
         self.moving_decay.assign(
-            K.switch(K.less(self.moving_factor, self.alpha_M), self.moving_decay,
-                     K.maximum(.75, self.moving_decay + self.epsilon))
+            K.switch(K.less(self.moving_factor, self.alpha_M), K.cast_to_floatx(self.moving_decay),
+                     K.maximum(.75, K.cast_to_floatx(self.moving_decay + self.epsilon)))
         )
 
 
