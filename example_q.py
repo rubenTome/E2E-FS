@@ -1,7 +1,6 @@
 from codecarbon import EmissionsTracker
-from backend_config import floatx
-csvFile = "emissions_" + floatx + "_q.csv"
-tracker = EmissionsTracker(log_level="warning", output_file=csvFile)
+from backend_config import outputFileName
+tracker = EmissionsTracker(log_level="warning", output_file=outputFileName)
 tracker.start()
 from keras.datasets import mnist
 from keras.callbacks import LearningRateScheduler
@@ -48,7 +47,7 @@ if __name__ == '__main__':
 
 tracker.stop()
 
-df = pd.read_csv(csvFile)
+df = pd.read_csv(outputFileName)
 df["accuracy"] = acc
 df["feature_mask"] = nnz
-df.to_csv(csvFile, index=False)
+df.to_csv(outputFileName, index=False)
