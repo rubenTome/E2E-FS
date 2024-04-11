@@ -89,7 +89,7 @@ class E2EFSSoft(E2EFS_Base):
                  decay_factor=.75,
                  kernel_regularizer=None,
                  kernel_initializer='ones',
-                 T=10000,
+                 T=10001,
                  warmup_T=2000,
                  start_alpha=.0,
                  alpha_N=.99,
@@ -98,14 +98,15 @@ class E2EFSSoft(E2EFS_Base):
         if 'input_shape' not in kwargs and 'input_dim' in kwargs:
             kwargs['input_shape'] = (kwargs.pop('input_dim'),)
 
-        self.dropout = dropout
-        self.decay_factor = decay_factor
-        self.T = T
-        self.warmup_T = warmup_T
-        self.start_alpha = start_alpha
+        self.dropout = K.cast_to_floatx(dropout)
+        self.decay_factor = K.cast_to_floatx(decay_factor)
+        self.T = K.cast_to_floatx(T * epsilon)
+        self.warmup_T = K.cast_to_floatx(warmup_T * epsilon)
+        self.start_alpha = K.cast_to_floatx(start_alpha)
         self.cont_T = 0
-        self.alpha_M = alpha_N
-        self.epsilon = epsilon
+        self.alpha_M = K.cast_to_floatx(alpha_N)
+        self.epsilon = K.cast_to_floatx(epsilon)
+        self.increment = K.cast_to_floatx((1. - start_alpha) / T)
         super(E2EFSSoft, self).__init__(units=units,
                                         kernel_regularizer=kernel_regularizer,
                                         kernel_initializer=kernel_initializer,
@@ -118,23 +119,27 @@ class E2EFSSoft(E2EFS_Base):
         self.moving_units = self.add_weight(shape=(),
                                             name='moving_units',
                                             initializer=initializers.constant(self.units),
-                                            trainable=False, dtype='float32')
+                                            trainable=False)
+        self.moving_increment = self.add_weight(shape=(),
+                                            name='moving_increment',
+                                            initializer=initializers.constant(self.increment),
+                                            trainable=False)
         self.moving_T = self.add_weight(shape=(),
                                         name='moving_T',
                                         initializer='zeros',
-                                        trainable=False, dtype='float32')
+                                        trainable=False)
         self.moving_factor = self.add_weight(shape=(),
                                              name='moving_factor',
                                              initializer=initializers.constant([0.]),
-                                             trainable=False, dtype='float32')
+                                             trainable=False)
         self.moving_decay = self.add_weight(shape=(),
                                              name='moving_decay',
                                              initializer=initializers.constant(self.decay_factor),
-                                             trainable=False, dtype='float32')
+                                             trainable=False)
         self.cont = self.add_weight(shape=(),
                                     name='cont',
                                     initializer='ones',
-                                    trainable=False, dtype='float32')
+                                    trainable=False)
 
         def kernel_activation(x):
             t = x / K.max(K.abs(x))
@@ -182,12 +187,16 @@ class E2EFSSoft(E2EFS_Base):
             K.switch(K.less(self.moving_T, self.warmup_T),
                      self.start_alpha,
                      K.minimum(self.alpha_M,
-                               self.start_alpha + (1. - self.start_alpha) * (self.moving_T - self.warmup_T) / self.T))
+                               self.moving_factor + self.moving_increment))
         )
-        self.moving_T.assign_add(1.)
+        self.moving_T.assign_add(self.epsilon)
         self.moving_decay.assign(
             K.switch(K.less(self.moving_factor, self.alpha_M), self.moving_decay,
-                     K.maximum(.75, self.moving_decay + self.epsilon))
+                     K.maximum(K.cast_to_floatx(.75), self.moving_decay + self.epsilon))
+        )
+        self.moving_increment.assign(
+            K.switch(K.cast_to_floatx(self.moving_factor + self.moving_increment) - self.moving_factor < .1 * self.moving_increment, 1.1 * self.moving_increment,
+                     self.moving_increment)
         )
 
 

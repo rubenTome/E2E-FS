@@ -19,7 +19,7 @@ class E2EFSCallback(Callback):
             print(
                 "Epoch %05d: cost stopping %.6f" % (epoch, logs['loss']),
                 ', moving_factor : ', moving_factor,
-                ', moving_units : ', K.eval(layer.moving_units),
+                ', moving_units : ', K.eval(layer.moving_increment),
                 ', nnz : ', (e2efs_kernel > 0.).sum(),
                 ', zeros : ', (e2efs_kernel == 0.).sum(),
                 ', T : ', K.eval(layer.moving_T),
