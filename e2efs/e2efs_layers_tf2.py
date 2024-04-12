@@ -4,7 +4,6 @@ from backend_config import bcknd
 
 K.backend = bcknd
 
-
 class E2EFS_Base(layers.Layer):
 
     def __init__(self, units,

@@ -1,13 +1,14 @@
 from keras.layers import Add, Activation, Dropout
 from keras.layers import Convolution2D
 from keras.layers import BatchNormalization
-from keras import backend as K
+from keras import backend as K, ops
 from keras.regularizers import l2
 import numpy as np
 
 
 def residual_block(ip, output_channels, strides=(1, 1), dropout=0.0, regularization=0.0, kernel_initializer='he_normal', bn=True):
-    ip_channels = K.int_shape(ip)[-1]
+    # ip_channels = K.int_shape(ip)[-1]
+    ip_channels = ops.shape(ip)[-1]
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
 
     if output_channels == ip_channels and np.prod(strides) == 1.0:

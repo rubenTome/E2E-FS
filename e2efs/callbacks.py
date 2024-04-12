@@ -1,6 +1,7 @@
 from keras.callbacks import Callback
-from keras import backend as K
+from keras import backend as K, ops
 
+K.eval = lambda x: x.numpy()
 
 class E2EFSCallback(Callback):
 
@@ -22,7 +23,7 @@ class E2EFSCallback(Callback):
                 ', moving_units : ', K.eval(layer.moving_increment),
                 ', nnz : ', (e2efs_kernel > 0.).sum(),
                 ', zeros : ', (e2efs_kernel == 0.).sum(),
-                ', T : ', K.eval(layer.moving_T),
+                ', T : ', K.eval(layer.moving_T), K.eval(layer.T),
                 ', sum_gamma : ', e2efs_kernel.sum(),
                 ', max_gamma : ', e2efs_kernel.max(),
                 ", epsilon : ", K.epsilon()

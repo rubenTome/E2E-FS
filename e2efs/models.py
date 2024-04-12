@@ -13,11 +13,16 @@ if version.parse(tf.__version__) < version.parse('2.0'):
 else:
     if version.parse(tf.__version__) < version.parse('2.9'):
         from e2efs import optimizers_tf2 as custom_optimizers
-    elif version.parse(tf.__version__) < version.parse('2.12'):
+    elif version.parse(tf.__version__) < version.parse('2.11'):
         from e2efs import optimizers_tf29 as custom_optimizers
+    elif version.parse(tf.__version__) < version.parse('2.16'):
+        raise Exception('Version not supported. Use tensorflow <2.11 or >2.16')
     else:
-        from e2efs import optimizers_tf212 as custom_optimizers
-    from e2efs import e2efs_layers_tf2 as e2efs_layers
+        from e2efs import optimizers_tf216 as custom_optimizers
+    if version.parse(tf.__version__) < version.parse('2.11'):
+        from e2efs import e2efs_layers_tf2 as e2efs_layers
+    else:
+        from e2efs import e2efs_layers_tf216 as e2efs_layers
 from backend_config import bcknd
 
 K.backend = bcknd
@@ -55,7 +60,10 @@ class E2EFSBase:
             opt = LossScaleOptimizer(inner_optimizer=inneropt)
         else:
             raise Exception('Optimizer not supported. Contact the authors if you need it')
-        compile_args = model._get_compile_args()
+        if version.parse(tf.__version__) < version.parse('2.11'):
+            compile_args = model._get_compile_args()
+        else:
+            compile_args = model._compile_config.config
         compile_args['optimizer'] = opt
         self.model.compile(**compile_args)
         return self

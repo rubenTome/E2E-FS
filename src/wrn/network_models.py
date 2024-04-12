@@ -9,9 +9,9 @@ from src.layers.dfs import DFS
 import numpy as np
 import tempfile
 import os
-from tensorflow import keras
+import keras
 from backend_config import bcknd
-import tensorflow_model_optimization as tfmot
+# import tensorflow_model_optimization as tfmot
 
 K.backend = bcknd
 
@@ -38,14 +38,13 @@ def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_norm
 def three_layer_nn_q(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
                    dropout=0.0, dfs=False, regularization=5e-4, layer_dims=None, quantized=False, momentum=0.9):
 
-    layersL = [layers.InputLayer(input_shape=input_shape)]
+    layersL = []
     if dfs:
         layersL.append(DFS())
     else:
         layersL.append(layers.Flatten())
 
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
-    layersL.append(layers.InputLayer(input_shape=(np.prod(input_shape),), sparse=False))
     if layer_dims is None:
         layer_dims = [150, 100, 50]
     if dfs:

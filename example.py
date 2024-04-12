@@ -7,7 +7,7 @@ from keras.callbacks import LearningRateScheduler
 from keras.utils import to_categorical
 from keras import optimizers
 from e2efs import models
-from src.wrn.network_models import three_layer_nn_q
+from src.wrn.network_models import three_layer_nn_q, wrn164
 import numpy as np
 from keras import backend as K
 from backend_config import bcknd
@@ -25,8 +25,12 @@ if __name__ == '__main__':
     y_test = to_categorical(y_test)
 
     ## LOAD MODEL AND COMPILE IT (NEVER FORGET TO COMPILE!)
-    model = three_layer_nn_q(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4, layer_dims=[50, 25, 10])
+    # model = three_layer_nn_q(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4, layer_dims=[50, 25, 10])
+    model = wrn164(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4)
     model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss='categorical_crossentropy')
+    model.fit(
+        x_train, y_train, batch_size=128, validation_data=(x_test, y_test), verbose=2
+    )
 
     ## LOAD E2EFS AND RUN IT
     fs_class = models.E2EFSSoft(n_features_to_select=39).attach(model).fit(
