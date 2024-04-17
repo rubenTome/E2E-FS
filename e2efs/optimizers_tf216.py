@@ -4,7 +4,6 @@ import tensorflow as tf
 from backend_config import bcknd
 
 ops.backend = bcknd
-cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
 
 def get_e2efs_gradient(self, e2efs_grad):
         """Called in `minimize` to compute gradients from loss."""
@@ -14,10 +13,11 @@ def get_e2efs_gradient(self, e2efs_grad):
         # tf.print(e2efs_regularizer_grad)
         e2efs_regularizer_grad_corrected = e2efs_regularizer_grad / (tf.norm(e2efs_regularizer_grad) + K.epsilon())
         e2efs_grad_corrected = e2efs_grad / (tf.norm(e2efs_grad) + K.epsilon())
-        combined_e2efs_grad = cast_to_floatx(1. - self.e2efs_layer.moving_factor) * e2efs_grad_corrected + \
-                              cast_to_floatx(self.e2efs_layer.moving_factor) * e2efs_regularizer_grad_corrected
+        combined_e2efs_grad = ops.cast(1. - self.e2efs_layer.moving_factor, dtype=e2efs_regularizer_grad.dtype) * e2efs_grad_corrected + \
+                              ops.cast(self.e2efs_layer.moving_factor, dtype=e2efs_regularizer_grad.dtype) * e2efs_regularizer_grad_corrected
         combined_e2efs_grad = ops.sign(
-            cast_to_floatx(self.e2efs_layer.moving_factor)) * ops.minimum(cast_to_floatx(self.th), ops.max(
+            ops.cast(self.e2efs_layer.moving_factor, dtype=e2efs_regularizer_grad.dtype)) * ops.minimum(
+            ops.cast(self.th, dtype=e2efs_regularizer_grad.dtype), ops.max(
             ops.abs(combined_e2efs_grad))) * combined_e2efs_grad / ops.max(
             ops.abs(combined_e2efs_grad) + K.epsilon())
         return combined_e2efs_grad

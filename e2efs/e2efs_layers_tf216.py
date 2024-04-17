@@ -161,13 +161,13 @@ class E2EFSSoft(E2EFS_Base):
 
         def loss_units(x):
             t = x / ops.max(ops.abs(x))
-            x = ops.where(ops.less(t, ops.epsilon()), ops.zeros_like(x), x)
+            x = ops.where(ops.less(t, ops.epsilon()), ops.zeros_like(x, dtype=x.dtype), x)
             m = ops.sum(ops.cast(ops.greater(x, 0.), keras.config.floatx()))
             sum_x = ops.sum(x)
             moving_units = ops.where(ops.less_equal(m, self.units), m,
-                                    ops.cast_to_floatx((1. - self.moving_decay) * self.moving_units))
+                                    ops.cast((1. - self.moving_decay) * self.moving_units, x.dtype))
             epsilon_minus = 0.
-            epsilon_plus = ops.where(ops.less_equal(m, self.units), ops.cast_to_floatx(self.moving_units), ops.cast_to_floatx(0.))
+            epsilon_plus = ops.where(ops.less_equal(m, self.units), ops.cast(self.moving_units, dtype=x.dtype), 0.)
             return ops.relu(moving_units - sum_x - epsilon_minus) + ops.relu(sum_x - moving_units - epsilon_plus)
 
         # self.kernel_regularizer = lambda x: regularizers.l2(.01)(ops.relu(x))
@@ -177,10 +177,8 @@ class E2EFSSoft(E2EFS_Base):
         def regularization(x):
             l_units = loss_units(x)
             t = x / ops.max(ops.abs(x))
-            p = ops.where(ops.less(t, ops.epsilon()), ops.zeros_like(x), x)
-            cost = ops.cast_to_floatx(0.)
-            cost += ops.sum(p * (1. - p)) + 2. * l_units
-            # cost += ops.sum(ops.relu(x - 1.))
+            p = ops.where(ops.less(t, ops.epsilon()), ops.zeros_like(x, dtype=x.dtype), x)
+            cost = ops.sum(p * (1. - p)) + 2. * l_units
             return cost
 
         self.regularization_loss = regularization(self.kernel)
