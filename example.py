@@ -8,7 +8,7 @@ from keras import optimizers
 from e2efs import models
 import numpy as np
 from keras import backend as K
-from backend_config import bcknd, ops, n_features_to_select, nclasses, loss, batch_size
+from backend_config import bcknd, ops, n_features_to_select, nclasses, loss, batch_size, model_fun, dataset
 import pandas as pd
 from src.wrn.network_models import three_layer_nn_q, wrn164, three_layer_nn
 from dataset_reader import colon, leukemia, lung181, lymphoma
@@ -16,8 +16,24 @@ from keras.datasets import mnist
 
 
 K.backend = bcknd
-model_fun = three_layer_nn #mnist=wrn164
-dataset = lymphoma.load_dataset #mnist=mnist.load_data
+if model_fun == "three_layer_nn":
+    model_fun = three_layer_nn
+elif model_fun == "wrn164":
+    model_fun = wrn164
+else:
+    raise Exception("invalid model function")
+if dataset == "mnist":
+    dataset = mnist.load_data
+elif dataset == "colon":
+    dataset = colon.load_dataset
+elif dataset == "leukemia":
+    dataset = leukemia.load_dataset
+elif dataset == "lung181":
+    dataset = lung181.load_dataset
+elif dataset == "lymphoma":
+    dataset = lymphoma.load_dataset
+else:
+    raise Exception("Invalid dataset")
 #colon, lung en float16 poca precision, no baja nnz
 
 if __name__ == '__main__':
