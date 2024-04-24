@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 
 PATH = str(Path.cwd()) + "/"
-fileNames = os.listdir(PATH)
+fileNames = sorted(os.listdir(PATH))
 fileNames = [file for file in fileNames if '.csv' in file]
 
 usecols = ["duration", "emissions", "accuracy", "feature_mask"]
@@ -21,8 +21,9 @@ for file in fileNames:
     df = pd.read_csv(PATH + file, usecols=usecols)
     keys = df.keys()
     df["accuracy"] = df["accuracy"] * 100
-    df["emissions"] = df["emissions"] * 10000
-    df["duration"] = df["duration"] / 10
+    df["emissions"] = df["emissions"] * 1000000
+    df["duration"] = df["duration"] / 1
+    df["feature_mask"] = df["feature_mask"] / 10
 
     offset = width * multiplier
     rects = ax.bar(x + offset, df.values[0], width, label=file)

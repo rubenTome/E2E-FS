@@ -2,14 +2,15 @@ import keras
 from keras import backend as K, ops
 # from keras import mixed_precision
 
-precision = "float16"
+#wrn164 con precision float64 no funciona
+precision = "float64"
 script = "/home/lidia/Documents/ruben/E2E-FS/example.py"
 outputFileName = "emissions_" + precision + ".csv"
 n_features_to_select = 1000 #mnist=39 colon=1000 leukemia=1785 lung181=6266 lymphoma=2013
 nclasses = 2 #mnist=10, microarray=2
 loss = "binary_crossentropy" #mnist="categorical_crossentropy" microarray="binary_crossentropy"
 batch_size = 2 #mnist=128 microarray=2
-model_fun = "three_layer_nn" #mnist="wrn164" microarray="three_layer_nn"
+model_fun = "three_layer_nn" #posibles valores="wrn164","three_layer_nn"
 dataset = "colon" #posibles valores="colon","leukemia","lung181","lymphoma","mnist" 
 
 print('using precision:', precision, 'ok')
