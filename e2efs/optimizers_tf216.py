@@ -5,21 +5,22 @@ from backend_config import bcknd
 
 ops.backend = bcknd
 
+
 def get_e2efs_gradient(self, e2efs_grad):
         """Called in `minimize` to compute gradients from loss."""
         with tf.GradientTape() as e2efs_tape:
             e2efs_loss = self.e2efs_layer.regularization_func(self.e2efs_layer.kernel)
         e2efs_regularizer_grad = e2efs_tape.gradient(e2efs_loss, [self.e2efs_layer.kernel])[0]
         # tf.print(e2efs_regularizer_grad)
-        e2efs_regularizer_grad_corrected = e2efs_regularizer_grad / (tf.norm(e2efs_regularizer_grad) + K.epsilon())
-        e2efs_grad_corrected = e2efs_grad / (tf.norm(e2efs_grad) + K.epsilon())
+        e2efs_regularizer_grad_corrected = e2efs_regularizer_grad / (tf.norm(e2efs_regularizer_grad) + ops.epsilon())
+        e2efs_grad_corrected = e2efs_grad / (tf.norm(e2efs_grad) + ops.epsilon())
         combined_e2efs_grad = ops.cast(1. - self.e2efs_layer.moving_factor, dtype=e2efs_regularizer_grad.dtype) * e2efs_grad_corrected + \
                               ops.cast(self.e2efs_layer.moving_factor, dtype=e2efs_regularizer_grad.dtype) * e2efs_regularizer_grad_corrected
         combined_e2efs_grad = ops.sign(
             ops.cast(self.e2efs_layer.moving_factor, dtype=e2efs_regularizer_grad.dtype)) * ops.minimum(
             ops.cast(self.th, dtype=e2efs_regularizer_grad.dtype), ops.max(
             ops.abs(combined_e2efs_grad))) * combined_e2efs_grad / ops.max(
-            ops.abs(combined_e2efs_grad) + K.epsilon())
+            ops.abs(combined_e2efs_grad) + ops.epsilon())
         return combined_e2efs_grad
 
 

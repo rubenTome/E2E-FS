@@ -1,5 +1,5 @@
 from keras.models import Model
-from keras import backend as K, optimizers, layers
+from keras import backend as K, optimizers, layers, losses
 from keras.regularizers import l1, l2
 from src.layers.dfs import DFS
 
@@ -23,12 +23,12 @@ def fcnn(nfeatures, nclasses=2, layer_dims=None, bn=True, kernel_initializer='he
 
     x = layers.Dense(nclasses, use_bias=True, kernel_initializer=kernel_initializer,
               kernel_regularizer=l2(regularization) if regularization > 0.0 else None)(x)
-    output = layers.Activation('softmax')(x)
-
+    output = x
+    
     model = Model(input, output)
 
     optimizer = optimizers.Adam()#lr=1e-4)
-    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
+    model.compile(loss=losses.CategoricalCrossentropy(from_logits=True), optimizer=optimizer, metrics=['acc'])
 
     return model
 

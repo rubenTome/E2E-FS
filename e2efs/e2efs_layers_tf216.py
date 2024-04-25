@@ -176,7 +176,7 @@ class E2EFSSoft(E2EFS_Base):
 
         def regularization(x):
             l_units = loss_units(x)
-            t = x / ops.max(ops.abs(x))
+            t = x / ops.max(ops.abs(x) + ops.epsilon())
             p = ops.where(ops.less(t, ops.epsilon()), ops.zeros_like(x, dtype=x.dtype), x)
             cost = ops.sum(p * (1. - p)) + 2. * l_units
             return cost

@@ -1,5 +1,5 @@
 from keras.models import Model
-from keras import backend as K, optimizers, layers, models
+from keras import backend as K, optimizers, layers, models, losses
 from keras.layers import Dense, Activation, BatchNormalization, Input, Convolution2D, GlobalAveragePooling2D, Flatten
 from keras.regularizers import l2
 from keras.applications import DenseNet121, MobileNetV2
@@ -17,7 +17,7 @@ K.backend = bcknd
 
 
 def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
-                   dropout=0.0, dfs=False, regularization=5e-4, momentum=0.9):
+                   dropout=0.0, dfs=False, regularization=5e-2, momentum=0.9):
 
     nfeatures = np.prod(input_shape)
     tln_model = tln((nfeatures, ), nclasses, bn, kernel_initializer, dropout, False, regularization, momentum)
@@ -31,7 +31,7 @@ def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_norm
     model = Model(ip, output)
 
     optimizer = optimizers.SGD(learning_rate=1e-1)
-    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
+    model.compile(loss=losses.CategoricalCrossentropy(from_logits=True), optimizer=optimizer, metrics=['acc'])
 
     return model
 
