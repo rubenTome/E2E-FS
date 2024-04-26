@@ -9,7 +9,7 @@ outputFileName = "emissions_" + precision + ".csv"
 n_features_to_select = 6266 #mnist=39 colon=1000 leukemia=1785 lung181=6266 lymphoma=2013
 nclasses = 2 #mnist=10, microarray=2
 loss = losses.CategoricalCrossentropy(from_logits=True) #"binary_crossentropy" #mnist="categorical_crossentropy" microarray="binary_crossentropy"
-batch_size = 2 #mnist=128 microarray=2
+batch_size = 16 #mnist=128 microarray=2
 model_fun = "three_layer_nn" #posibles valores="wrn164","three_layer_nn"
 dataset = "lung181" #posibles valores="colon","leukemia","lung181","lymphoma","mnist" 
 

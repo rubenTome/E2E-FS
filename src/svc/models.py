@@ -1,10 +1,18 @@
-from keras import backend as K, regularizers
+from keras import backend as K, regularizers, ops
 from sklearn.svm import LinearSVC as sklearn_LinearSVC
 from keras.layers import Dense, Input
 from keras.models import Model
 from src.layers.dfs import DFS
 from keras import optimizers
+import keras
+from tensorflow.math import reduce_sum, reduce_mean, reduce_max, square, sign, equal
+import tensorflow as tf
+from keras.activations import relu
 import numpy as np
+from backend_config import bcknd
+
+ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
+K.backend = bcknd
 
 
 class LinearSVC(object):
@@ -61,7 +69,7 @@ class LinearSVC(object):
             x = DFS()(x)
         classifier = Dense(
             nclasses - 1, use_bias=True, kernel_initializer='he_normal',
-            bias_initializer='zeros', input_shape=K.int_shape(x)[-1:],
+            bias_initializer='zeros', input_shape=x.shape[-1:],
             kernel_regularizer=regularizers.l2(self.mu)
         )
         output = classifier(x)
@@ -82,24 +90,24 @@ class LinearSVC(object):
     def loss_function(cls, loss_function, weights=None):
         def loss(y_true, y_pred):
             y_true = 2. * y_true[:, 1:] - 1.
-            out = K.relu(1.0 - y_true * y_pred)
+            out = relu(1.0 - y_true * y_pred)
             if 'square' in loss_function:
-                out = K.square(out)
+                out = square(out)
             if weights is not None:
                 out = weights * out
-            return K.mean(out, axis=-1)
+            return reduce_mean(out, axis=-1)
         return loss
 
     @classmethod
     def accuracy(cls, y_true, y_pred):
         y_true = 2. * y_true[:, 1:] - 1.
-        return K.mean(K.equal(y_true, K.sign(y_pred)))
+        return reduce_mean(ops.cast_to_floatx(equal(y_true, sign(y_pred))))
 
     @classmethod
     def mAP(cls, y_true, y_pred):
-        y_pred_index = K.flatten(K.cast(K.relu(K.sign(y_pred)), 'int32'))
-        y_pred_one_hot = K.one_hot(y_pred_index, 2)
-        return K.mean(K.sum(y_true * y_pred_one_hot, axis=0) / K.maximum(1., K.sum(y_true, axis=0)))
+        y_pred_index = tf.reshape(tf.cast(relu(sign(y_pred)), 'int32'), [-1])
+        y_pred_one_hot = ops.one_hot(y_pred_index, 2)
+        return reduce_mean(reduce_sum(y_true * y_pred_one_hot, axis=0) / reduce_max(1., reduce_sum(y_true, axis=0)))
 
     def evaluate(self, X, y, batch_size=None, verbose=1):
         if self.use_keras:

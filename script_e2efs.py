@@ -94,7 +94,7 @@ def train_Keras(train_X, train_y, test_X, test_y, kwargs, e2efs_class=None, n_fe
         model = svc_model.model
         e2efs_layer = None
 
-    optimizer = optimizer_class(e2efs_layer, lr=initial_lr)
+    optimizer = optimizer_class(e2efs_layer)
 
     model.compile(
         loss=LinearSVC.loss_function(loss_function, class_weight),

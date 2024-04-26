@@ -62,7 +62,7 @@ if __name__ == '__main__':
     ## LOAD MODEL AND COMPILE IT (NEVER FORGET TO COMPILE!)
     # model = three_layer_nn_q(input_shape=x_train.shape[1:], nclasses=10, regularization=5e-4, layer_dims=[50, 25, 10])
     model = model_fun(input_shape=x_train.shape[1:], nclasses=nclasses, regularization=5e-4)
-    model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss=loss, run_eagerly=True)
+    model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss=loss)
     # model.fit(
     #    x_train, y_train, batch_size=batch_size, validation_data=(x_test, y_test), verbose=2
     # )

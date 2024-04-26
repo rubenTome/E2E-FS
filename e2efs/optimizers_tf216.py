@@ -26,7 +26,7 @@ def get_e2efs_gradient(self, e2efs_grad):
 
 class E2EFS_SGD(optimizers.SGD):
 
-    def __init__(self, e2efs_layer, th=.1, e2efs_lr=0.01, e2efs_beta_1=0.5, e2efs_beta_2=0.999, e2efs_epsilon=1e-7, e2efs_amsgrad=False, **kwargs):
+    def __init__(self, e2efs_layer, th=.1, e2efs_lr=0.01, e2efs_beta_1=0.5, e2efs_beta_2=0.999, e2efs_epsilon=1e-3, e2efs_amsgrad=False, **kwargs):
         super().__init__(**kwargs)
         self.e2efs_layer = e2efs_layer
         self.e2efs_lr = e2efs_lr
@@ -124,13 +124,13 @@ class E2EFS_Adam(optimizers.Adam):
 
     def update_step(self, gradient, variable, learning_rate):
         """Update step given gradient and the associated model variable."""
-        lr = ops.cast(self.e2efs_lr if 'e2efs' in variable.path else self.learning_rate, variable.dtype)
+        lr = ops.cast(self.e2efs_lr if 'e2efs' in variable.name else self.learning_rate, variable.dtype)
         gradient = ops.cast(gradient, variable.dtype)
-        if 'e2efs' in variable.path:
+        if 'e2efs' in variable.name:
             gradient = get_e2efs_gradient(self, gradient)
         local_step = ops.cast(self.iterations + 1, variable.dtype)
-        beta_1 = self.e2efs_beta1 if "e2efs" in variable.path else self.beta_1
-        beta_2 = self.e2efs_beta2 if "e2efs" in variable.path else self.beta_2
+        beta_1 = self.e2efs_beta1 if "e2efs" in variable.name else self.beta_1
+        beta_2 = self.e2efs_beta2 if "e2efs" in variable.name else self.beta_2
         beta_1_power = ops.power(
             ops.cast(beta_1, variable.dtype), local_step
         )
