@@ -4,14 +4,14 @@ import json
 import numpy as np
 import os
 from dataset_reader import leukemia
-from e2efs import e2efs_layers_tf2 as e2efs_layers
+from e2efs import e2efs_layers_tf216 as e2efs_layers
 from src.utils import balance_accuracy
 from src.svc.models import LinearSVC
 from extern.liblinear.python import liblinearutil
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.metrics import roc_auc_score
 from keras import backend as K
-from e2efs import callbacks as clbks, optimizers_tf2 as optimizers
+from e2efs import callbacks as clbks, optimizers_tf216 as optimizers
 import time
 import tensorflow as tf
 
@@ -96,7 +96,7 @@ def train_Keras(train_X, train_y, test_X, test_y, kwargs, e2efs_class=None, n_fe
         model = svc_model.model
         e2efs_layer = None
 
-    optimizer = optimizer_class(e2efs_layer, lr=initial_lr)
+    optimizer = optimizer_class(e2efs_layer )
 
     model.compile(
         loss=LinearSVC.loss_function(loss_function, class_weight),

@@ -27,7 +27,7 @@ def main(rerun=False):
                     'scripts.fs_challenge.' + dataset + '.script_baseline_matlab')
                 script_baseline_matlab.main(dataset)
         if rerun or not os.path.isdir(os.path.dirname(os.path.realpath(__file__)) + '/' + dataset + '/info_nn'):
-            script_e2efs_nn = importlib.import_module('scripts.fs_challenge.' + dataset + '.script_e2efs_nn')
+            script_e2efs_nn = importlib.import_module('scripts.fs_challenge.' + dataset + '.script_e2efs')
             script_e2efs_nn.main(dataset)
             script_baseline_nn = importlib.import_module('scripts.fs_challenge.' + dataset + '.script_baseline_nn')
             script_baseline_nn.main(dataset)

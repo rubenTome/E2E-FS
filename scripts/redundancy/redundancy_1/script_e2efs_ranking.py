@@ -3,11 +3,11 @@ import json
 import numpy as np
 import os
 from dataset_reader import redundancy_1
-from e2efs import e2efs_layers_tf2 as e2efs_layers
+from e2efs import e2efs_layers_tf216 as e2efs_layers
 from src.network_models import three_layer_nn
 from sklearn.model_selection import RepeatedStratifiedKFold
 from keras import backend as K
-from e2efs import callbacks as clbks, optimizers_tf2 as optimizers
+from e2efs import callbacks as clbks, optimizers_tf216 as optimizers
 import time
 
 
@@ -75,7 +75,7 @@ def train_Keras(train_X, train_y, test_X, test_y, kwargs, e2efs_class=None, n_fe
                             verbose=verbose)
     )
 
-    optimizer = optimizer_class(e2efs_layer, lr=initial_lr)
+    optimizer = optimizer_class(e2efs_layer )
 
     model.compile(
         loss='categorical_crossentropy',

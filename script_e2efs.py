@@ -3,7 +3,7 @@ from keras import callbacks, regularizers
 import json
 import numpy as np
 import os
-from dataset_reader import lung181
+from dataset_reader import leukemia
 from e2efs import e2efs_layers_tf216 as e2efs_layers
 from src.utils import balance_accuracy
 from src.svc.models import LinearSVC
@@ -14,7 +14,9 @@ from keras import backend as K
 from e2efs import callbacks as clbks, optimizers_tf216 as optimizers
 import time
 import tensorflow as tf
+from backend_config import bcknd
 
+K.backend = bcknd
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
@@ -29,9 +31,9 @@ loss_function = 'square_hinge'
 k_folds = 3
 k_fold_reps = 20
 optimizer_class = optimizers.E2EFS_Adam
-normalization_func = lung181.Normalize
+normalization_func = leukemia.Normalize
 
-dataset_name = 'lung181'
+dataset_name = 'leukemia'
 directory = os.path.dirname(os.path.realpath(__file__)) + '/info/'
 e2efs_classes = [e2efs_layers.E2EFS, e2efs_layers.E2EFSSoft]
 
@@ -51,7 +53,7 @@ def scheduler():
 
 
 def load_dataset():
-    dataset = lung181.load_dataset()
+    dataset = leukemia.load_dataset()
     return dataset
 
 

@@ -11,14 +11,24 @@ from e2efs.callbacks import E2EFSCallback
 from keras import backend as K
 import tensorflow as tf
 import time
-if tf.__version__ < '2.0':
+from packaging import version
+if version.parse(tf.__version__) < version.parse('2.0'):
     from e2efs import optimizers as custom_optimizers
     from e2efs import e2efs_layers
 else:
-    from e2efs import optimizers_tf2 as custom_optimizers
-    from e2efs import e2efs_layers_tf2 as e2efs_layers
     tf.set_random_seed = tf.random.set_seed
-
+    if version.parse(tf.__version__) < version.parse('2.9'):
+        from e2efs import optimizers_tf2 as custom_optimizers
+    elif version.parse(tf.__version__) < version.parse('2.11'):
+        from e2efs import optimizers_tf29 as custom_optimizers
+    elif version.parse(tf.__version__) < version.parse('2.16'):
+        raise Exception('Version not supported. Use tensorflow <2.11 or >2.16')
+    else:
+        from e2efs import optimizers_tf216 as custom_optimizers
+    if version.parse(tf.__version__) < version.parse('2.11'):
+        from e2efs import e2efs_layers_tf2 as e2efs_layers
+    else:
+        from e2efs import e2efs_layers_tf216 as e2efs_layers
 
 batch_size = 128
 regularization = 5e-4
