@@ -11,7 +11,6 @@ import tempfile
 import os
 import keras
 from backend_config import bcknd
-# import tensorflow_model_optimization as tfmot
 
 K.backend = bcknd
 
@@ -35,18 +34,19 @@ def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_norm
 
     return model
 
-def three_layer_nn_q(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
-                   dropout=0.0, dfs=False, regularization=5e-4, layer_dims=None, quantized=False, momentum=0.9):
+def three_layer_nn_v2(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
+                   dropout=0.0, dfs=False, regularization=5e-4, layer_dims=[50, 25, 10], momentum=0.9):
 
-    layersL = []
+    layersL = [layers.InputLayer(shape=input_shape)]
     if dfs:
         layersL.append(DFS())
     else:
         layersL.append(layers.Flatten())
 
     channel_axis = 1 if K.image_data_format() == "channels_first" else -1
-    if layer_dims is None:
-        layer_dims = [150, 100, 50]
+    #por defecto layer_dims es [50, 25, 10]
+    #if layer_dims is None:
+    #    layer_dims = [150, 100, 50]
     if dfs:
         layersL.append(DFS())
     for layer_dim in layer_dims:
@@ -63,13 +63,9 @@ def three_layer_nn_q(input_shape, nclasses=2, bn=True, kernel_initializer='he_no
     layersL.append(layers.Activation('softmax'))
 
     model = keras.Sequential(layersL)
-    #cuantizamos modelo
-    if quantized:
-        model = tfmot.quantization.keras.quantize_model(model)
-    #TODO se usan 2 optimizadores distintos en three_layer_nn
-    #optimizer = optimizers.Adam(lr=1e-4)
+
     optimizer = optimizers.SGD(learning_rate=1e-1)
-    model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
+    model.compile(loss=losses.CategoricalCrossentropy(from_logits=True), optimizer=optimizer, metrics=['acc'])
 
     return model
 
@@ -325,7 +321,6 @@ def efficientnetB1(
 
     return model
 
-#
 # def efficientnetB0v2(
 #         input_shape, nclasses=2, num_dense_blocks=3, growth_rate=12, depth=100, compression_factor=0.5,
 #         data_augmentation=True, regularization=0.

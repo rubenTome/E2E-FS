@@ -8,3 +8,4 @@ extern/__pycache__
 src/svc/__pycache__
 __pycache__
 emissions*
+.vscode
