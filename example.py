@@ -28,6 +28,7 @@ elif selected_dataset["model"] == "three_layer_nn_v2":
 else:
     raise Exception("invalid model function")
 
+microarr = False
 print("used dataset:", selected_dataset["name"])
 if selected_dataset["name"] == "mnist":
     dataset = mnist.load_data
@@ -36,12 +37,16 @@ elif selected_dataset["name"] == "cifar10":
 elif selected_dataset["name"] == "fashion_mnist":
     dataset = fashion_mnist.load_data
 elif selected_dataset["name"] == "colon":
+    microarr = True
     dataset = colon.load_dataset
 elif selected_dataset["name"] == "leukemia":
+    microarr = True
     dataset = leukemia.load_dataset
 elif selected_dataset["name"] == "lung181":
+    microarr = True
     dataset = lung181.load_dataset
 elif selected_dataset["name"] == "lymphoma":
+    microarr = True
     dataset = lymphoma.load_dataset
 else:
     raise Exception("Invalid dataset", selected_dataset["name"])
@@ -50,7 +55,7 @@ if __name__ == '__main__':
 
     ## LOAD DATA
     # if temporal, para diferenciar microarray de los demas conjuntos de datos
-    if selected_dataset["nclass"] > 2:
+    if not microarr:
         (x_train, y_train), (x_test, y_test) = dataset()
         if dataset == mnist.load_data or dataset == fashion_mnist.load_data:
             x_train = np.expand_dims(x_train, axis=-1)
@@ -111,9 +116,9 @@ if __name__ == '__main__':
     nnz = np.count_nonzero(fs_class.get_mask())
     print('FEATURE_MASK NNZ :', nnz)
 
-tracker.stop()
+    tracker.stop()
 
-df = pd.read_csv(outputFileName)
-df["accuracy"] = acc
-df["feature_mask"] = nnz
-df.to_csv(outputFileName, index=False)
+    df = pd.read_csv(outputFileName)
+    df["accuracy"] = acc
+    df["feature_mask"] = nnz
+    df.to_csv(outputFileName, index=False)

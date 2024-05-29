@@ -1,8 +1,5 @@
 import keras
 from keras import backend as K, ops, losses
-import pandas as pd
-from pathlib import Path
-import os
 
 #wrn164 con precision float64 no funciona
 #wrn164 con precision float16 loss infinito
@@ -18,7 +15,7 @@ lymphoma = {"name": "lymphoma", "nfeat": 2013, "nclass": 2, "batch": 16, "model"
 
 precision = "float16"
 script = "/home/lidia/Documents/ruben/E2E-FS/example.py"
-selected_dataset = fashion_mnist
+selected_dataset = mnist
 loss = losses.CategoricalCrossentropy(from_logits=False)
 epochs = 60
 outputFileName = "emissions_" + selected_dataset["name"] + "_" + precision + ".csv"
