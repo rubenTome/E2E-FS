@@ -6,14 +6,16 @@ fashion_mnist = {"name": "fashion_mnist", "nfeat": 39, "nclass": 10, "batch": 12
 eurosat = {"name": "eurosat", "nfeat": 2048, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
 colorectal_histology = {"name": "colorectal_histology", "nfeat": 33750, "nclass": 8, "batch": 128, "model": "wrn164","epochs": 60}
 cifar10 = {"name": "cifar10", "nfeat": 512, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
-colon = {"name": "colon", "nfeat": 1000, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 60}
-leukemia = {"name": "leukemia", "nfeat": 1785, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 60}
-lung181 = {"name": "lung181", "nfeat": 6266, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 60}
-lymphoma = {"name": "lymphoma", "nfeat": 2013, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 60}
-gisette = {"name": "gisette", "nfeat": 20, "nclass": 2, "batch": 128, "model": "linearSVC","epochs": 100}
-dexter = {"name": "dexter", "nfeat": 9947, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
-gina = {"name": "gina", "nfeat": 485, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
-madelon = {"name": "madelon", "nfeat": 30, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+
+colon = {"name": "colon", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+leukemia = {"name": "leukemia", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+lung181 = {"name": "lung181", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+lymphoma = {"name": "lymphoma", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+
+gisette = {"name": "gisette", "nfeat": 10, "nclass": 2, "batch": 128, "model": "linearSVC","epochs": 150150}
+dexter = {"name": "dexter", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+gina = {"name": "gina", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+madelon = {"name": "madelon", "nfeat": 5, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
 
 precision = "float32"
 script = "/home/lidia/Documents/ruben/E2E-FS/example.py"

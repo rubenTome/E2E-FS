@@ -4,7 +4,7 @@ import json
 import numpy as np
 import os
 from dataset_reader import madelon
-from e2efs import e2efs_layers
+from e2efs import e2efs_layers_tf216 as e2efs_layers
 from src.utils import balance_accuracy
 from src.network_models import three_layer_nn
 from sklearn.model_selection import RepeatedStratifiedKFold

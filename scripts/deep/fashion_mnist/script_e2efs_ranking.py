@@ -9,7 +9,7 @@ import numpy as np
 import os
 from keras.preprocessing.image import ImageDataGenerator
 from e2efs.callbacks import E2EFSCallback
-from e2efs import e2efs_layers
+from e2efs import e2efs_layers_tf216 as e2efs_layers
 from keras import backend as K
 import tensorflow as tf
 import time

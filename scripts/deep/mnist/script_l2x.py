@@ -7,7 +7,6 @@ import json
 import numpy as np
 import os
 from keras.preprocessing.image import ImageDataGenerator
-from e2efs import e2efs_layers
 from keras import backend as K
 import tensorflow as tf
 import time

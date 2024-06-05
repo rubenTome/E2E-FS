@@ -24,7 +24,7 @@ import tensorflow_datasets as tfds
 ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
 K.backend = bcknd
 
-#params for fs_challenge datasets
+#params for linearSVC
 mu = 100
 kernel = 'linear'
 reps = 1
@@ -135,8 +135,6 @@ def train_Keras(train_X, train_y, test_X, test_y, normalization_func, kwargs, e2
 print("model function:", selected_dataset["model"])
 if selected_dataset["model"] == "three_layer_nn":
     model_fun = three_layer_nn
-elif selected_dataset["model"] == "three_layer_nn_v2":
-    model_fun = three_layer_nn_v2
 elif selected_dataset["model"] == "wrn164":
     model_fun = wrn164
 elif selected_dataset["model"] == "linearSVC":
@@ -156,17 +154,21 @@ elif selected_dataset["name"] == "fashion_mnist":
 elif selected_dataset["name"] == "colon":
     microarr = True
     dataset = colon.load_dataset
+    normalization_func = colon.Normalize
 elif selected_dataset["name"] == "leukemia":
     microarr = True
     dataset = leukemia.load_dataset
+    normalization_func = leukemia.Normalize
 elif selected_dataset["name"] == "lung181":
     microarr = True
     dataset = lung181.load_dataset
+    normalization_func = lung181.Normalize
 elif selected_dataset["name"] == "lymphoma":
     microarr = True
     dataset = lymphoma.load_dataset
+    normalization_func = lymphoma.Normalize
 elif selected_dataset["name"] == "gisette":
-    microarr = True #TEMPORAL
+    microarr = True
     dataset = gisette.load_dataset
     normalization_func = gisette.Normalize
 elif selected_dataset["name"] == "dexter":
