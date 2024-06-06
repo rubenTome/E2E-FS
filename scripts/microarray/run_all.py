@@ -1,6 +1,13 @@
+from codecarbon import EmissionsTracker
+tracker = EmissionsTracker(log_level="warning")
+tracker.start()
 import os
 import importlib
+from backend_config import bcknd, ops
+from keras import backend as K
 
+ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
+K.backend = bcknd
 
 datasets = [
     'colon',
@@ -35,3 +42,5 @@ def main(rerun=False):
 
 if __name__ == '__main__':
     main()
+
+tracker.stop()
