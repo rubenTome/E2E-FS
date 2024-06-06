@@ -1,14 +1,14 @@
 from codecarbon import EmissionsTracker
-tracker = EmissionsTracker(log_level="warning")
+from backend_config import precision
+tracker = EmissionsTracker(log_level="warning", output_file="emissions_madelon_script_" + precision + ".csv")
 tracker.start()
 from keras.utils import to_categorical
-from backend_config import bcknd, ops
 from keras import callbacks, regularizers
 import json
 import numpy as np
 import os
 from dataset_reader import madelon
-from e2efs import e2efs_layers_tf216
+from e2efs import e2efs_layers_tf216 as e2efs_layers
 from src.utils import balance_accuracy
 from src.network_models import three_layer_nn
 from sklearn.model_selection import RepeatedStratifiedKFold
@@ -16,27 +16,29 @@ from sklearn.metrics import average_precision_score
 from keras import backend as K
 from e2efs import callbacks as clbks, optimizers
 import time
-from keras.utils import set_random_seed
+from backend_config import ops, bcknd
 import keras
 
 ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
 K.backend = bcknd
 
+
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 
 
-epochs = 150
+epochs = 100
 reps = 1
 verbose = 0
-k_folds = 3
-k_fold_reps = 20
+k_folds = 2
+k_fold_reps = 1
 optimizer_class = optimizers.E2EFS_Adam
 normalization_func = madelon.Normalize
 regularization = 1e-3
+features_array = [5]#[5, 10, 15, 20]
 
 dataset_name = 'madelon'
-directory = os.path.dirname(os.path.realpath(__file__)) + '/info/'
-e2efs_classes = [e2efs_layers_tf216.E2EFS, e2efs_layers_tf216.E2EFSSoft]
+directory = "/home/lidia/Documents/ruben/E2E-FS/"
+e2efs_classes = [e2efs_layers.E2EFSSoft]#[e2efs_layers.E2EFS, e2efs_layers.E2EFSSoft]
 
 initial_lr = .01
 
@@ -89,8 +91,8 @@ def train_Keras(train_X, train_y, test_X, test_y, kwargs, e2efs_class=None, n_fe
         e2efs_layer = e2efs_class(n_features, input_shape=norm_train_X.shape[1:])
         model = e2efs_layer.add_to_model(classifier, input_shape=norm_train_X.shape[1:])
         fs_callbacks.append(
-            clbks.E2EFSCallback(#factor_func=None,
-                                #units_func=None,
+            clbks.E2EFSCallback(factor_func=None,
+                                units_func=None,
                                 verbose=verbose)
         )
     else:
@@ -180,7 +182,7 @@ def main(dataset_name):
                 'regularization': regularization,  # 100. / len(train_data), # regularization
             }
 
-            for i, n_features in enumerate([5, 10, 15, 20]):
+            for i, n_features in enumerate(features_array):
                 n_accuracies = []
                 n_model_accuracies = []
                 n_BAs = []
@@ -194,7 +196,7 @@ def main(dataset_name):
                 heatmaps = []
                 for r in range(reps):
                     np.random.seed(cont_seed)
-                    set_random_seed(cont_seed)
+                    K.tf.set_random_seed(cont_seed)
                     cont_seed += 1
 
                     model = train_Keras(
@@ -227,7 +229,7 @@ def main(dataset_name):
 
                 for r in range(reps):
                     np.random.seed(cont_seed)
-                    set_random_seed(cont_seed)
+                    K.tf.set_random_seed(cont_seed)
                     cont_seed += 1
                     model = train_Keras(svc_train_data, train_labels, svc_test_data, test_labels, model_kwargs)
                     train_data_norm = model.normalization.transform(svc_train_data)
@@ -302,4 +304,4 @@ if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.realpath(__file__)) + '/../../../')
     main(dataset_name)
 
-tracker.stop()
+tracker.start()

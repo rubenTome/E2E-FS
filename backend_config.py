@@ -17,9 +17,9 @@ dexter = {"name": "dexter", "nfeat": 10, "nclass": 2, "batch": 16, "model": "lin
 gina = {"name": "gina", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
 madelon = {"name": "madelon", "nfeat": 5, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
 
-precision = "float32"
+precision = "float16"
 script = "/home/lidia/Documents/ruben/E2E-FS/example.py"
-selected_dataset = colon
+selected_dataset = gina
 loss = losses.CategoricalCrossentropy(from_logits=False)
 outputFileName = "emissions_" + selected_dataset["name"] + "_" + precision + ".csv"
 
