@@ -91,8 +91,8 @@ def train_Keras(train_X, train_y, test_X, test_y, kwargs, e2efs_class=None, n_fe
         e2efs_layer = e2efs_class(n_features, input_shape=norm_train_X.shape[1:])
         model = e2efs_layer.add_to_model(classifier, input_shape=norm_train_X.shape[1:])
         fs_callbacks.append(
-            clbks.E2EFSCallback(factor_func=None,
-                                units_func=None,
+            clbks.E2EFSCallback(#factor_func=None,
+                                #units_func=None,
                                 verbose=verbose)
         )
     else:
@@ -196,7 +196,7 @@ def main(dataset_name):
                 heatmaps = []
                 for r in range(reps):
                     np.random.seed(cont_seed)
-                    K.tf.set_random_seed(cont_seed)
+                    keras.utils.set_random_seed(cont_seed)
                     cont_seed += 1
 
                     model = train_Keras(
@@ -229,7 +229,7 @@ def main(dataset_name):
 
                 for r in range(reps):
                     np.random.seed(cont_seed)
-                    K.tf.set_random_seed(cont_seed)
+                    keras.utils.set_random_seed(cont_seed)
                     cont_seed += 1
                     model = train_Keras(svc_train_data, train_labels, svc_test_data, test_labels, model_kwargs)
                     train_data_norm = model.normalization.transform(svc_train_data)
