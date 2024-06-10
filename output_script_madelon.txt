@@ -1,5 +1,0 @@
-using precision: float16 ok
-E2EFS-Method :  E2EFSSoft
-madelon_three_layer_nn
-k_fold 0 of 2
-n_features :  5
