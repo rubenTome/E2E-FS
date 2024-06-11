@@ -1,8 +1,13 @@
+from backend_config import bcknd, ops, precision
+from codecarbon import EmissionsTracker
+import os 
+path = os.path.dirname(os.path.realpath(__file__))
+tracker = EmissionsTracker(log_level="warning", output_file=path + "/info_" + precision + "/emissions_script_e2efs_ranking_leukemia_" + precision + ".csv")
+tracker.start()
 from keras.utils import to_categorical
 from keras import callbacks, regularizers
 import json
 import numpy as np
-import os
 from dataset_reader import leukemia
 from e2efs import e2efs_layers_tf216 as e2efs_layers
 from src.utils import balance_accuracy
@@ -14,6 +19,11 @@ from keras import backend as K
 from e2efs import callbacks as clbks, optimizers_tf216 as optimizers
 import time
 import tensorflow as tf
+from keras import backend as K
+import keras
+
+ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
+K.backend = bcknd
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -333,3 +343,5 @@ def main(dataset_name):
 if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.realpath(__file__)) + '/../../../')
     main(dataset_name)
+
+tracker.stop()

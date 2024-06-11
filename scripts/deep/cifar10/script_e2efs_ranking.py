@@ -1,3 +1,9 @@
+from backend_config import bcknd, ops, precision
+from codecarbon import EmissionsTracker
+import os 
+path = os.path.dirname(os.path.realpath(__file__))
+tracker = EmissionsTracker(log_level="warning", output_file=path + "/info_" + precision + "/emissions_script_e2efs_ranking_cifar10_" + precision + ".csv")
+tracker.start()
 from keras.utils import to_categorical
 from keras import callbacks, initializers, optimizers
 from keras.models import load_model
@@ -5,7 +11,6 @@ from keras.datasets import cifar10
 from src.wrn import network_models
 import json
 import numpy as np
-import os
 from keras.preprocessing.image import ImageDataGenerator
 from e2efs.callbacks import E2EFSCallback
 from keras import backend as K
@@ -29,6 +34,11 @@ else:
         from e2efs import e2efs_layers_tf2 as e2efs_layers
     else:
         from e2efs import e2efs_layers_tf216 as e2efs_layers
+from keras import backend as K
+import keras
+
+ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
+K.backend = bcknd
 
 batch_size = 128
 regularization = 5e-4
@@ -270,3 +280,5 @@ def main():
 if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.realpath(__file__)) + '/../../../')
     main()
+
+tracker.stop()
