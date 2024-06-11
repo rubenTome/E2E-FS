@@ -1,6 +1,6 @@
 from codecarbon import EmissionsTracker
 from backend_config import outputFileName
-tracker = EmissionsTracker(log_level="warning", output_file=outputFileName)
+tracker = EmissionsTracker(log_level="warning", output_file= "/home/lidia/Documents/ruben/E2E-FS/"+ outputFileName)
 tracker.start()
 import os
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"

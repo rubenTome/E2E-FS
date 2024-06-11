@@ -1,6 +1,6 @@
 from codecarbon import EmissionsTracker
 from backend_config import precision
-tracker = EmissionsTracker(log_level="warning", output_file="emissions_madelon_script_" + precision + ".csv")
+tracker = EmissionsTracker(log_level="warning", output_file="/home/lidia/Documents/ruben/E2E-FS/emissions_madelon_script_" + precision + ".csv")
 tracker.start()
 from keras.utils import to_categorical
 from keras import callbacks, regularizers
@@ -29,12 +29,12 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 epochs = 100
 reps = 1
 verbose = 0
-k_folds = 2
-k_fold_reps = 1
+k_folds = 3
+k_fold_reps = 20
 optimizer_class = optimizers.E2EFS_Adam
 normalization_func = madelon.Normalize
 regularization = 1e-3
-features_array = [5]#[5, 10, 15, 20]
+features_array = [5, 10, 15, 20]
 
 dataset_name = 'madelon'
 directory = "/home/lidia/Documents/ruben/E2E-FS/"
@@ -266,7 +266,7 @@ def main(dataset_name):
                     model_BAs[i] += n_model_BAs
                     model_mAPs[i] += n_model_mAPs
 
-        output_filename = directory + 'three_layer_nn_' + e2efs_class.__name__ + '.json'
+        output_filename = directory + 'three_layer_nn_' + e2efs_class.__name__ + "_" + precision + '.json'
 
         if not os.path.isdir(directory):
             os.makedirs(directory)

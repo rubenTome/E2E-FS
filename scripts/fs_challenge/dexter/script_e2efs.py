@@ -1,3 +1,9 @@
+from codecarbon import EmissionsTracker
+from backend_config import ops, bcknd, precision
+import os
+path = os.path.dirname(os.path.realpath(__file__))
+tracker = EmissionsTracker(log_level="warning", output_file= path + "/emissions/emissions_dexter_script_e2efs_" + precision + ".csv")
+tracker.start()
 from keras.utils import to_categorical
 from keras import callbacks, regularizers
 import json
@@ -14,6 +20,10 @@ from keras import backend as K
 from e2efs import callbacks as clbks, optimizers_tf216 as optimizers
 import time
 import tensorflow as tf
+import keras
+
+ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
+K.backend = bcknd
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -32,7 +42,7 @@ optimizer_class = optimizers.E2EFS_Adam
 normalization_func = dexter.Normalize
 
 dataset_name = 'dexter'
-directory = os.path.dirname(os.path.realpath(__file__)) + '/info/'
+directory = os.path.dirname(os.path.realpath(__file__)) + "/info_float16/" 
 e2efs_classes = [e2efs_layers.E2EFS, e2efs_layers.E2EFSSoft]
 
 initial_lr = .01
@@ -322,7 +332,7 @@ def main(dataset_name):
                     model_BAs[i] += n_model_BAs
                     model_aucs[i] += n_model_aucs
 
-        output_filename = directory + 'LinearSVC_' + kernel + '_' + e2efs_class.__name__ + '.json'
+        output_filename = directory + 'LinearSVC_' + kernel + '_' + e2efs_class.__name__ + "_" + dataset_name + "_" + precision + '.json'
 
         if not os.path.isdir(directory):
             os.makedirs(directory)
@@ -366,3 +376,5 @@ def main(dataset_name):
 if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.realpath(__file__)) + '/../../../')
     main(dataset_name)
+
+tracker.stop()
