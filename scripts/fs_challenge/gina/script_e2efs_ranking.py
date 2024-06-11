@@ -1,8 +1,13 @@
+from codecarbon import EmissionsTracker
+from backend_config import ops, bcknd, precision
+import os
+path = os.path.dirname(os.path.realpath(__file__))
+tracker = EmissionsTracker(log_level="warning", output_file= path + "/emissions/emissions_gina_script_e2efs_ranking" + precision + ".csv")
+tracker.start()
 from keras.utils import to_categorical
 from keras import callbacks, regularizers
 import json
 import numpy as np
-import os
 from dataset_reader import gina
 from e2efs import e2efs_layers_tf216 as e2efs_layers
 from src.utils import balance_accuracy
@@ -14,6 +19,10 @@ from keras import backend as K
 from e2efs import callbacks as clbks, optimizers_tf216 as optimizers
 import time
 import tensorflow as tf
+import keras
+
+ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
+K.backend = bcknd
 
 
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
@@ -26,14 +35,14 @@ kernel = 'linear'
 reps = 1
 verbose = 0
 loss_function = 'square_hinge'
-k_folds = 3
-k_fold_reps = 20
+k_folds = 2#3
+k_fold_reps = 5#20
 fs_reps = 1
 optimizer_class = optimizers.E2EFS_Adam
 normalization_func = gina.Normalize
 
 dataset_name = 'gina'
-directory = os.path.dirname(os.path.realpath(__file__)) + '/info/'
+directory = os.path.dirname(os.path.realpath(__file__)) + "/info_" + precision + "/"
 e2efs_classes = [e2efs_layers.E2EFSRanking]
 
 initial_lr = .01
@@ -295,7 +304,7 @@ def main(dataset_name):
                     svc_BAs[i] += n_svc_BAs
                     svc_aucs[i] += n_svc_aucs
 
-        output_filename = directory + 'LinearSVC_' + kernel + '_' + e2efs_class.__name__ + '.json'
+        output_filename = directory + 'LinearSVC_' + kernel + '_' + e2efs_class.__name__ + "_" + dataset_name + "_" + precision + '.json'
 
         if not os.path.isdir(directory):
             os.makedirs(directory)
@@ -333,3 +342,5 @@ def main(dataset_name):
 if __name__ == '__main__':
     os.chdir(os.path.dirname(os.path.realpath(__file__)) + '/../../../')
     main(dataset_name)
+
+tracker.stop()

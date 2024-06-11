@@ -36,13 +36,13 @@ kernel = 'linear'
 reps = 1
 verbose = 0
 loss_function = 'square_hinge'
-k_folds = 3
-k_fold_reps = 20
+k_folds = 2#3
+k_fold_reps = 5#20
 optimizer_class = optimizers.E2EFS_Adam
 normalization_func = dexter.Normalize
 
 dataset_name = 'dexter'
-directory = os.path.dirname(os.path.realpath(__file__)) + "/info_float16/" 
+directory = os.path.dirname(os.path.realpath(__file__)) + "/info_" + precision + "/" 
 e2efs_classes = [e2efs_layers.E2EFS, e2efs_layers.E2EFSSoft]
 
 initial_lr = .01

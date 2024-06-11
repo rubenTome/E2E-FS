@@ -8,7 +8,6 @@ from keras.utils import to_categorical
 from keras import callbacks, regularizers
 import json
 import numpy as np
-import os
 from dataset_reader import gisette
 from e2efs import e2efs_layers_tf216 as e2efs_layers
 from src.utils import balance_accuracy
@@ -35,13 +34,13 @@ kernel = 'linear'
 reps = 1
 verbose = 0
 loss_function = 'square_hinge'
-k_folds = 3
-k_fold_reps = 20
+k_folds = 2#3
+k_fold_reps = 5#20
 optimizer_class = optimizers.E2EFS_Adam
 normalization_func = gisette.Normalize
 
 dataset_name = 'gisette'
-directory = os.path.dirname(os.path.realpath(__file__)) + "/info_float16/"
+directory = os.path.dirname(os.path.realpath(__file__)) + "/info_" + precision + "/"
 e2efs_classes = [e2efs_layers.E2EFS, e2efs_layers.E2EFSSoft]
 
 initial_lr = .01
