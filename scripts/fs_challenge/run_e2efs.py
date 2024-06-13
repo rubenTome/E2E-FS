@@ -10,14 +10,14 @@ datasets = [
 scripts = [
     "script_e2efs.py",
     "script_e2efs_nn.py",
-    "script_e2efs_ranking.py",
-    "script_e2efs_ranking_nn.py"
+    #"script_e2efs_ranking.py",
+    #"script_e2efs_ranking_nn.py"
 ]
 
 for dataset in datasets:
+    print("USING", dataset)
     for script in scripts:
-        print("EXECUTING", dataset)
-        if dataset == "dexter" and script == "script_e2efs_ranking_nn.py":
+        if dataset == "dexter" and (script == "script_e2efs_ranking_nn.py"):
             continue
         if dataset == "gina" and (script == "script_e2efs_nn.py" or script == "script_e2efs_ranking_nn.py"):
             continue
@@ -25,4 +25,5 @@ for dataset in datasets:
             continue        
         if dataset == "madelon" and (script == "script_e2efs.py" or script == "script_e2efs_ranking"):
             continue
+        print("EXECUTING", script)
         exec(open(path + "/" + dataset + "/" + script).read())

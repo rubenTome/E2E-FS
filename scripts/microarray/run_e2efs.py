@@ -10,7 +10,7 @@ datasets = [
 ]
 scripts = [
     "script_e2efs",
-    "script_e2efs_ranking"
+    #"script_e2efs_ranking"
 ]
 
 for dataset in datasets:

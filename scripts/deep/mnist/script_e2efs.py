@@ -181,7 +181,7 @@ def main():
                     e2efs_layer = e2efs_class(n_features, input_shape=train_data.shape[1:], kernel_initializer=initializers.constant(mask))
                     model = e2efs_layer.add_to_model(classifier, input_shape=train_data.shape[1:])
 
-                    optimizer = custom_optimizers.E2EFS_Adam(e2efs_layer=e2efs_layer, lr=1e-2)  # optimizers.adam(lr=1e-2)
+                    optimizer = custom_optimizers.E2EFS_Adam(e2efs_layer=e2efs_layer)  # optimizers.adam(lr=1e-2)
                     model.compile(loss='categorical_crossentropy', optimizer=optimizer, metrics=['acc'])
                     model.fs_layer = e2efs_layer
                     model.classifier = classifier

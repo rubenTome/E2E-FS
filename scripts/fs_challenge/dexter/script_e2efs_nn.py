@@ -30,7 +30,7 @@ extra_epochs = 200
 reps = 1
 verbose = 0
 warming_up = False
-k_folds = 2#3
+k_folds = 3
 k_fold_reps = 5#20
 regularization = 1e-2
 optimizer_class = optimizers.E2EFS_Adam
@@ -110,15 +110,15 @@ def train_Keras(train_X, train_y, test_X, test_y, kwargs, e2efs_class=None, n_fe
         e2efs_layer = e2efs_class(n_features, input_shape=norm_train_X.shape[1:], **e2efs_kwargs)
         model = e2efs_layer.add_to_model(classifier, input_shape=norm_train_X.shape[1:])
         model_clbks.append(
-            clbks.E2EFSCallback(factor_func=e2efs_factor(T),
-                                units_func=None,
+            clbks.E2EFSCallback(#factor_func=e2efs_factor(T),
+                                #units_func=None,
                                 verbose=verbose)
         )
     else:
         model = classifier
         e2efs_layer = None
 
-    optimizer = optimizer_class(e2efs_layer, lr=1e-3)
+    optimizer = optimizer_class(e2efs_layer)
     model_epochs = epochs
     if e2efs_class is not None:
         model_epochs += extra_epochs

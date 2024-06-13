@@ -29,7 +29,7 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 epochs = 150
 reps = 1
 verbose = 0
-k_folds = 2#3
+k_folds = 3
 k_fold_reps = 5#20
 optimizer_class = optimizers.E2EFS_Adam
 normalization_func = madelon.Normalize
@@ -90,8 +90,8 @@ def train_Keras(train_X, train_y, test_X, test_y, kwargs, e2efs_class=None, n_fe
         e2efs_layer = e2efs_class(n_features, input_shape=norm_train_X.shape[1:])
         model = e2efs_layer.add_to_model(classifier, input_shape=norm_train_X.shape[1:])
         fs_callbacks.append(
-            clbks.E2EFSCallback(factor_func=None,
-                                units_func=None,
+            clbks.E2EFSCallback(#factor_func=None,
+                                #units_func=None,
                                 verbose=verbose)
         )
     else:
