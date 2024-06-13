@@ -1,7 +1,7 @@
 path = "./scripts/fs_challenge"
 
 datasets = [
-    #'gina',
+    'gina',
     'dexter',
     'gisette',
     'madelon'
