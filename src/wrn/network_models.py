@@ -10,9 +10,9 @@ import numpy as np
 import tempfile
 import os
 import keras
-from backend_config import bcknd
+#from backend_config import bcknd
 
-K.backend = bcknd
+#K.backend = bcknd
 
 
 def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
@@ -177,11 +177,11 @@ def densenet(
                           kernel_initializer='he_normal')(y)
         if not data_augmentation:
             y = layers.Dropout(0.2)(y)
-        x = layers.AveragePooling2D()(y)
+        x = layers.AveragePooling2D((2, 2))(y)
 
     # add classifier on top
     # after average pooling, size of feature map is 1 x 1
-    x = layers.AveragePooling2D()(x)
+    x = layers.AveragePooling2D((2, 2))(x)
     y = layers.Flatten()(x)
     outputs = layers.Dense(nclasses,
                            kernel_initializer='he_normal',

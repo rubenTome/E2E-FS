@@ -23,9 +23,9 @@ else:
         from e2efs import e2efs_layers_tf2 as e2efs_layers
     else:
         from e2efs import e2efs_layers_tf216 as e2efs_layers
-from backend_config import bcknd
+#from backend_config import bcknd
 
-K.backend = bcknd
+#K.backend = bcknd
 
 
 class E2EFSBase:
@@ -40,7 +40,6 @@ class E2EFSBase:
 
     def attach(self, model):
         self.e2efs_layer = self.get_layer(model.input_shape[1:])
-        #TODO se cuantiza model, pero no self.model
         self.model = self.e2efs_layer.add_to_model(model, input_shape=model.input_shape[1:])
         kwargs = model.optimizer.get_config()
         if 'sgd' in type(model.optimizer).__name__.lower():

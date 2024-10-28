@@ -1,9 +1,9 @@
 import keras.config
 from keras import optimizers, ops, backend as K
 import tensorflow as tf
-from backend_config import bcknd
+#from backend_config import bcknd
 
-ops.backend = bcknd
+ops.backend = K.backend()
 
 
 def get_e2efs_gradient(self, e2efs_grad):

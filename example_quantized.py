@@ -10,14 +10,14 @@ from keras.datasets import mnist as mn, cifar10 as cf, fashion_mnist as fs
 from keras import optimizers, backend as K, callbacks, ops, losses
 from e2efs import models, e2efs_layers_tf216 as e2efs_layers, callbacks as clbks, optimizers_tf216
 from src.network_models import three_layer_nn
-from src.wrn.network_models import wrn164, densenet
+from src.wrn.network_models import wrn164
 from dataset_reader import colon as cl, leukemia as lk, lung181 as ln, lymphoma as lm, gisette as gs, dexter as dx, gina as gn, madelon as md
 from src.svc.models import LinearSVC
 import tensorflow_datasets as tfds
 import tensorflow
-from scipy.special import erf
+import pathlib
 
-mnist = {"name": "mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "densenet", "epochs": 60}
+mnist = {"name": "mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "wrn164", "epochs": 60}
 fashion_mnist = {"name": "fashion_mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
 eurosat = {"name": "eurosat", "nfeat": 2048, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
 colorectal_histology = {"name": "colorectal_histology", "nfeat": 33750, "nclass": 8, "batch": 128, "model": "wrn164","epochs": 60}
@@ -30,24 +30,6 @@ gisette = {"name": "gisette", "nfeat": 10, "nclass": 2, "batch": 128, "model": "
 dexter = {"name": "dexter", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
 gina = {"name": "gina", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
 madelon = {"name": "madelon", "nfeat": 5, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
-
-class Normalize_KDS:
-
-    def __init__(self):
-        self.stats = None
-
-    def fit(self, X):
-        mean = np.mean(X, axis=0)
-        std = np.sqrt(np.square(X - mean).sum(axis=0) / max(1, len(X) - 1))
-        self.stats = (mean, std)
-
-    def transform(self, X):
-        transformed_X = erf((X - self.stats[0]) / (np.maximum(1e-6, self.stats[1]) * np.sqrt(2.)))
-        return transformed_X
-
-    def fit_transform(self, X):
-        self.fit(X)
-        return self.transform(X)
 
 def scheduler_ft(epoch):
     if epoch < 20:
@@ -226,9 +208,40 @@ def train_Keras_three_layer_nn(train_X, train_y, test_X, test_y, normalization_f
 
     return model
 
+# A helper function to evaluate the LiteRT model using "test" dataset.
+def evaluate_model(interpreter, test_images, test_labels):
+  input_index = interpreter.get_input_details()[0]["index"]
+  output_index = interpreter.get_output_details()[0]["index"]
+
+  # Run predictions on every image in the "test" dataset.
+  prediction_digits = []
+  for test_image in test_images:
+    # Pre-processing: add batch dimension and convert to float32 to match with
+    # the model's input data format.
+    test_image = np.expand_dims(test_image, axis=0).astype(np.float32)
+    interpreter.set_tensor(input_index, test_image)
+
+    # Run inference.
+    interpreter.invoke()
+
+    # Post-processing: remove batch dimension and find the digit with highest
+    # probability.
+    output = interpreter.tensor(output_index)
+    digit = np.argmax(output()[0])
+    prediction_digits.append(digit)
+
+  # Compare prediction results with ground truth labels to calculate accuracy.
+  accurate_count = 0
+  for index in range(len(prediction_digits)):
+    if prediction_digits[index] == test_labels[index]:
+      accurate_count += 1
+  accuracy = accurate_count * 1.0 / len(prediction_digits)
+
+  return accuracy
+
 #SELECTED DATASETS AND PRECISIONS
-datasets = [mnist, fashion_mnist, eurosat, colorectal_histology, cifar10, colon, leukemia, lung181, lymphoma, gisette, dexter, gina, madelon]
-precisions = ["float16", "float32"]
+datasets = [colon]#mnist, fashion_mnist, eurosat, colorectal_histology, cifar10, colon, leukemia, lung181, lymphoma, gisette, dexter, gina, madelon]
+precisions = ["float32"]#["float16", "float32"]
 
 #params for train_Keras_XXX
 mu = 100
@@ -245,6 +258,7 @@ regularization = 1e-3
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 loss = losses.CategoricalCrossentropy(from_logits=False)
 print("Num GPUs Available: ", len(tensorflow.config.experimental.list_physical_devices('GPU')))
+quantized = True
 for ds in datasets:
     for prec in precisions:
         print('using precision:', prec, 'ok')
@@ -268,15 +282,12 @@ for ds in datasets:
             model_fun = wrn164
         elif ds["model"] == "linearSVC":
             model_fun = LinearSVC
-        elif ds["model"] == "densenet":
-            model_fun = densenet
         else:
             raise Exception("invalid model function")
 
         print("used dataset:", ds["name"])
         if ds["name"] == "mnist":
             dataset = mn.load_data
-            normalization_func = Normalize_KDS
         elif ds["name"] == "cifar10":
             dataset = cf.load_data
         elif ds["name"] == "fashion_mnist":
@@ -381,15 +392,57 @@ for ds in datasets:
         ## FINE TUNING
         fs_class.fine_tuning(x_train, y_train, epochs=ds["epochs"], batch_size=ds["batch"], validation_data=(x_test, y_test),
                             callbacks=[LearningRateScheduler(scheduler_ft)], verbose=2)
-        print('FEATURE_RANKING :', fs_class.get_ranking())
-        acc = fs_class.get_model().evaluate(x_test, y_test, batch_size=ds["batch"])[-1]
-        print('ACCURACY : ', acc)
-        nnz = np.count_nonzero(fs_class.get_mask())
-        print('FEATURE_MASK NNZ :', nnz)
+
+        #quantization
+        if (quantized == True):
+            #
+            converter = tensorflow.lite.TFLiteConverter.from_keras_model(fs_class.get_model())
+            converter.target_spec.supported_ops = [
+                tensorflow.lite.OpsSet.TFLITE_BUILTINS,
+                tensorflow.lite.OpsSet.SELECT_TF_OPS
+            ]
+            tflite_model = converter.convert()
+            tflite_models_dir = pathlib.Path("/tmp/tflite_models/")
+            tflite_models_dir.mkdir(exist_ok=True, parents=True)
+            tflite_model_file = tflite_models_dir/"mnist_model.tflite"
+            tflite_model_file.write_bytes(tflite_model)
+            converter.optimizations = [tensorflow.lite.Optimize.DEFAULT]
+            converter.target_spec.supported_types = [tensorflow.float16]
+            tflite_fp16_model = converter.convert()
+            tflite_model_fp16_file = tflite_models_dir/"model_quant_f16.tflite"
+            tflite_model_fp16_file.write_bytes(tflite_fp16_model)
+            #
+            interpreter = tensorflow.lite.Interpreter(model_path=str(tflite_model_file))
+            interpreter.allocate_tensors()
+            interpreter_fp16 = tensorflow.lite.Interpreter(model_path=str(tflite_model_fp16_file))
+            interpreter_fp16.allocate_tensors()
+            #
+            input_index = interpreter.get_input_details()[0]["index"]
+            output_index = interpreter.get_output_details()[0]["index"]
+            x_test_q = np.expand_dims(x_test, axis=0).astype(np.float32)
+            interpreter.set_tensor(input_index, x_test_q)
+            interpreter.invoke()
+            predictions = interpreter.get_tensor(output_index)
+
+            input_index = interpreter_fp16.get_input_details()[0]["index"]
+            output_index = interpreter_fp16.get_output_details()[0]["index"]
+            interpreter_fp16.set_tensor(input_index, x_test_q)
+            interpreter_fp16.invoke()
+            predictions = interpreter_fp16.get_tensor(output_index)
+
+            print("FLOAT32\n", evaluate_model(interpreter, x_test_q, y_test))
+            print("FLOAT16\n", evaluate_model(interpreter_fp16, x_test_q, y_test))
+
+        else:
+            print('FEATURE_RANKING :', fs_class.get_ranking())
+            acc = fs_class.get_model().evaluate(x_test, y_test, batch_size=ds["batch"])[-1]
+            print('ACCURACY : ', acc)
+            nnz = np.count_nonzero(fs_class.get_mask())
+            print('FEATURE_MASK NNZ :', nnz)
 
         tracker.stop()
 
         df = pd.read_csv("results/" + outputFileName)
-        df["accuracy"] = acc
-        df["feature_mask"] = nnz
+        #df["accuracy"] = acc
+        #df["feature_mask"] = nnz
         df.to_csv("results/" + outputFileName, index=False)

@@ -2,10 +2,10 @@ from keras import backend as K, layers, models, initializers, ops
 import keras
 from keras.constraints import Constraint
 import numpy as np
-from backend_config import bcknd
+#from backend_config import bcknd
 
 ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
-K.backend = bcknd
+K.backend = K.backend()
 
 
 class E2EFS_Base(layers.Layer):

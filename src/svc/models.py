@@ -9,10 +9,10 @@ from tensorflow.math import reduce_sum, reduce_mean, reduce_max, square, sign, e
 import tensorflow as tf
 from keras.activations import relu
 import numpy as np
-from backend_config import bcknd
+#from backend_config import bcknd
 
 ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
-K.backend = bcknd
+#K.backend = bcknd
 
 
 class LinearSVC(object):
