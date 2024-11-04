@@ -17,34 +17,16 @@ import tensorflow_datasets as tfds
 import tensorflow
 from scipy.special import erf
 
-mnist = {"name": "mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "densenet", "epochs": 60}
-fashion_mnist = {"name": "fashion_mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
-eurosat = {"name": "eurosat", "nfeat": 2048, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
-colorectal_histology = {"name": "colorectal_histology", "nfeat": 33750, "nclass": 8, "batch": 128, "model": "wrn164","epochs": 60}
-cifar10 = {"name": "cifar10", "nfeat": 512, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
-colon = {"name": "colon", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
-leukemia = {"name": "leukemia", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
-lung181 = {"name": "lung181", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
-lymphoma = {"name": "lymphoma", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
-gisette = {"name": "gisette", "nfeat": 10, "nclass": 2, "batch": 128, "model": "linearSVC","epochs": 150150}
-dexter = {"name": "dexter", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
-gina = {"name": "gina", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
-madelon = {"name": "madelon", "nfeat": 5, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
-
 class Normalize_KDS:
-
     def __init__(self):
         self.stats = None
-
     def fit(self, X):
         mean = np.mean(X, axis=0)
         std = np.sqrt(np.square(X - mean).sum(axis=0) / max(1, len(X) - 1))
         self.stats = (mean, std)
-
     def transform(self, X):
         transformed_X = erf((X - self.stats[0]) / (np.maximum(1e-6, self.stats[1]) * np.sqrt(2.)))
         return transformed_X
-
     def fit_transform(self, X):
         self.fit(X)
         return self.transform(X)
@@ -67,7 +49,6 @@ def scheduler():
             return .2 * initial_lr
         else:
             return .04 * initial_lr
-
     return sch
 
 #model creation for linearSVC
@@ -225,6 +206,20 @@ def train_Keras_three_layer_nn(train_X, train_y, test_X, test_y, normalization_f
     model.normalization = normalization
 
     return model
+
+mnist = {"name": "mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "three_layer_nn", "epochs": 60}
+fashion_mnist = {"name": "fashion_mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
+eurosat = {"name": "eurosat", "nfeat": 2048, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
+colorectal_histology = {"name": "colorectal_histology", "nfeat": 33750, "nclass": 8, "batch": 128, "model": "wrn164","epochs": 60}
+cifar10 = {"name": "cifar10", "nfeat": 512, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
+colon = {"name": "colon", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+leukemia = {"name": "leukemia", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+lung181 = {"name": "lung181", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+lymphoma = {"name": "lymphoma", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+gisette = {"name": "gisette", "nfeat": 10, "nclass": 2, "batch": 128, "model": "linearSVC","epochs": 150}
+dexter = {"name": "dexter", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+gina = {"name": "gina", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+madelon = {"name": "madelon", "nfeat": 5, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
 
 #SELECTED DATASETS AND PRECISIONS
 datasets = [mnist, fashion_mnist, eurosat, colorectal_histology, cifar10, colon, leukemia, lung181, lymphoma, gisette, dexter, gina, madelon]
