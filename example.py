@@ -9,8 +9,8 @@ from keras.utils import to_categorical
 from keras.datasets import mnist as mn, cifar10 as cf, fashion_mnist as fs
 from keras import optimizers, backend as K, callbacks, ops, losses
 from e2efs import models, e2efs_layers_tf216 as e2efs_layers, callbacks as clbks, optimizers_tf216
-from src.network_models import three_layer_nn
-from src.wrn.network_models import wrn164, densenet
+#from src.network_models import three_layer_nn
+from src.wrn.network_models import wrn164, densenet, three_layer_nn
 from dataset_reader import colon as cl, leukemia as lk, lung181 as ln, lymphoma as lm, gisette as gs, dexter as dx, gina as gn, madelon as md
 from src.svc.models import LinearSVC
 import tensorflow_datasets as tfds
@@ -129,85 +129,7 @@ def train_Keras_linearSVC(train_X, train_y, test_X, test_y, normalization_func, 
 
     return model
 
-#model creation for three_layer_nn
-def train_Keras_three_layer_nn(train_X, train_y, test_X, test_y, normalization_func, kwargs, e2efs_class=None, n_features=None, epochs=150):
-    normalization = normalization_func()
-    num_classes = train_y.shape[-1]
-
-    norm_train_X = normalization.fit_transform(train_X)
-    norm_test_X = normalization.transform(test_X)
-
-    batch_size = max(2, len(train_X) // 50)
-    class_weight = train_y.shape[0] / np.sum(train_y, axis=0)
-    class_weight = num_classes * class_weight / class_weight.sum()
-    sample_weight = None
-    print('l2 :', kwargs['regularization'], ', batch_size :', batch_size)
-    print('reps : ', reps, ', weights : ', class_weight)
-    if num_classes == 2:
-        sample_weight = np.zeros((len(norm_train_X),))
-        sample_weight[train_y[:, 1] == 1] = class_weight[1]
-        sample_weight[train_y[:, 1] == 0] = class_weight[0]
-        class_weight = None
-
-    classifier = three_layer_nn(nfeatures=norm_train_X.shape[1:], **kwargs)
-
-    model_clbks = [
-        callbacks.LearningRateScheduler(scheduler()),
-    ]
-
-    fs_callbacks = []
-
-    if e2efs_class is not None:
-        e2efs_layer = e2efs_class(n_features, input_shape=norm_train_X.shape[1:])
-        model = e2efs_layer.add_to_model(classifier, input_shape=norm_train_X.shape[1:])
-        fs_callbacks.append(
-            clbks.E2EFSCallback(#factor_func=None,
-                                #units_func=None,
-                                verbose=verbose)
-        )
-    else:
-        model = classifier
-        e2efs_layer = None
-
-    optimizer = optimizer_class(e2efs_layer )
-
-    model.compile(
-        loss='categorical_crossentropy',
-        optimizer=optimizer,
-        metrics=['acc']
-    )
-
-    if e2efs_class is not None:
-        model.fs_layer = e2efs_layer
-        model.heatmap = e2efs_layer.moving_heatmap
-
-        start_time = time.process_time()
-        model.fit(
-            norm_train_X, train_y, batch_size=batch_size,
-            epochs=200000,
-            callbacks=fs_callbacks,
-            validation_data=(norm_test_X, test_y),
-            class_weight=class_weight,
-            sample_weight=sample_weight,
-            verbose=verbose
-        )
-        model.fs_time = time.process_time() - start_time
-
-    model.fit(
-        norm_train_X, train_y, batch_size=batch_size,
-        epochs=epochs,
-        callbacks=model_clbks,
-        validation_data=(norm_test_X, test_y),
-        class_weight=class_weight,
-        sample_weight=sample_weight,
-        verbose=verbose
-    )
-
-    model.normalization = normalization
-
-    return model
-
-mnist = {"name": "mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "three_layer_nn", "epochs": 60}
+mnist = {"name": "mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "wrn164", "epochs": 60}
 fashion_mnist = {"name": "fashion_mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
 eurosat = {"name": "eurosat", "nfeat": 2048, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
 colorectal_histology = {"name": "colorectal_histology", "nfeat": 33750, "nclass": 8, "batch": 128, "model": "wrn164","epochs": 60}
@@ -222,8 +144,8 @@ gina = {"name": "gina", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearS
 madelon = {"name": "madelon", "nfeat": 5, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
 
 #SELECTED DATASETS AND PRECISIONS
-datasets = [mnist, fashion_mnist, eurosat, colorectal_histology, cifar10, colon, leukemia, lung181, lymphoma, gisette, dexter, gina, madelon]
-precisions = ["float16", "float32"]
+datasets = [mnist, fashion_mnist, cifar10]#, eurosat, colorectal_histology, colon, leukemia, lung181, lymphoma, gisette, dexter, gina, madelon]
+precisions = ["float16"]#, "float16"]
 
 #params for train_Keras_XXX
 mu = 100
@@ -361,9 +283,8 @@ for ds in datasets:
             model = train_Keras_linearSVC(x_train, y_train, x_test, y_test, normalization_func, model_kwargs,
                                 e2efs_class=e2efs_layers.E2EFSSoft, n_features=ds["nfeat"])
         elif ds["model"] == "three_layer_nn":
-            model_kwargs = {"regularization": regularization}
-            model = train_Keras_three_layer_nn(x_train, y_train, x_test, y_test, normalization_func, model_kwargs,
-                                e2efs_class=e2efs_layers.E2EFSSoft, n_features=ds["nfeat"])
+            model = three_layer_nn(input_shape=x_train.shape[1:], nclasses=ds["nclass"], regularization=regularization)
+            model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss=loss)
         else:
             model = model_fun(input_shape=x_train.shape[1:], nclasses=ds["nclass"], regularization=5e-4)
             model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss=loss)
