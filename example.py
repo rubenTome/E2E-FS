@@ -10,7 +10,7 @@ from keras.datasets import mnist as mn, cifar10 as cf, fashion_mnist as fs
 from keras import optimizers, backend as K, callbacks, ops, losses
 from e2efs import models, e2efs_layers_tf216 as e2efs_layers, callbacks as clbks, optimizers_tf216
 #from src.network_models import three_layer_nn
-from src.wrn.network_models import wrn164, densenet, three_layer_nn
+from src.wrn.network_models import wrn164, densenet, three_layer_nn, three_layer_nn_v2
 from dataset_reader import colon as cl, leukemia as lk, lung181 as ln, lymphoma as lm, gisette as gs, dexter as dx, gina as gn, madelon as md
 from src.svc.models import LinearSVC
 import tensorflow_datasets as tfds
@@ -129,11 +129,11 @@ def train_Keras_linearSVC(train_X, train_y, test_X, test_y, normalization_func, 
 
     return model
 
-mnist = {"name": "mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "wrn164", "epochs": 60}
-fashion_mnist = {"name": "fashion_mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
+mnist = {"name": "mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "three_layer_nn", "epochs": 60}
+fashion_mnist = {"name": "fashion_mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "three_layer_nn","epochs": 60}
 eurosat = {"name": "eurosat", "nfeat": 2048, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
 colorectal_histology = {"name": "colorectal_histology", "nfeat": 33750, "nclass": 8, "batch": 128, "model": "wrn164","epochs": 60}
-cifar10 = {"name": "cifar10", "nfeat": 512, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
+cifar10 = {"name": "cifar10", "nfeat": 512, "nclass": 10, "batch": 128, "model": "three_layer_nn","epochs": 60}
 colon = {"name": "colon", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
 leukemia = {"name": "leukemia", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
 lung181 = {"name": "lung181", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
@@ -144,8 +144,9 @@ gina = {"name": "gina", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearS
 madelon = {"name": "madelon", "nfeat": 5, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
 
 #SELECTED DATASETS AND PRECISIONS
-datasets = [mnist, fashion_mnist, cifar10]#, eurosat, colorectal_histology, colon, leukemia, lung181, lymphoma, gisette, dexter, gina, madelon]
-precisions = ["float16"]#, "float16"]
+datasets = [mnist, fashion_mnist, cifar10, eurosat, colorectal_histology, colon, leukemia, lung181, lymphoma, gisette, dexter, gina, madelon]
+#SOLO USAR 1 PRECISION POR EJECUCION
+precisions = ["float32"]
 
 #params for train_Keras_XXX
 mu = 100
@@ -283,12 +284,12 @@ for ds in datasets:
             model = train_Keras_linearSVC(x_train, y_train, x_test, y_test, normalization_func, model_kwargs,
                                 e2efs_class=e2efs_layers.E2EFSSoft, n_features=ds["nfeat"])
         elif ds["model"] == "three_layer_nn":
-            model = three_layer_nn(input_shape=x_train.shape[1:], nclasses=ds["nclass"], regularization=regularization)
+            model = three_layer_nn_v2(input_shape=x_train.shape[1:], nclasses=ds["nclass"], regularization=regularization)
             model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss=loss)
         else:
             model = model_fun(input_shape=x_train.shape[1:], nclasses=ds["nclass"], regularization=5e-4)
             model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss=loss)
-
+        print(model.summary())
         ## LOAD E2EFS AND RUN IT
         fs_class = models.E2EFSSoft(n_features_to_select=ds["nfeat"]).attach(model).fit(
             x_train, y_train, batch_size=ds["batch"], validation_data=(x_test, y_test), verbose=2
