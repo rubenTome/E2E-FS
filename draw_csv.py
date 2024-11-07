@@ -16,17 +16,18 @@ keys = []
 
 fig, ax = plt.subplots(layout='constrained')
 
+acums = np.array([.0 for _ in range(len(usecols))])
 for file in fileNames:
-    fileId = "_" + file.split("_")[1].split(".")[0]
+    df = pd.read_csv(PATH + file, usecols=usecols)
+    print(file, df.values[0])
+    acums += np.array(df.values[0])
+
+for file in fileNames:
     df = pd.read_csv(PATH + file, usecols=usecols)
     keys = df.keys()
-    df["accuracy"] = df["accuracy"] * 100
-    df["emissions"] = df["emissions"] * 1000000
-    df["duration"] = df["duration"] / 1
-    df["feature_mask"] = df["feature_mask"] / 10
 
     offset = width * multiplier
-    rects = ax.bar(x + offset, df.values[0], width, label=file)
+    rects = ax.bar(x + offset, df.values[0] / acums, width, label=file)
     ax.bar_label(rects, padding=3)
     multiplier += 1
 
@@ -34,6 +35,6 @@ ax.set_ylabel('Values')
 ax.set_title('Files')
 ax.set_xticks(x + width, keys)
 ax.legend(loc='upper left')
-ax.set_ylim(0, 250)
+ax.set_ylim(0, 1)
 
 plt.show()
