@@ -144,9 +144,9 @@ gina = {"name": "gina", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearS
 madelon = {"name": "madelon", "nfeat": 5, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
 
 #SELECTED DATASETS AND PRECISIONS
-datasets = [mnist, fashion_mnist, cifar10, eurosat, colorectal_histology, colon, leukemia, lung181, lymphoma, gisette, dexter, gina, madelon]
+datasets = [mnist, fashion_mnist, cifar10]#, eurosat, colorectal_histology, colon, leukemia, lung181, lymphoma, gisette, dexter, gina, madelon]
 #SOLO USAR 1 PRECISION POR EJECUCION
-precisions = ["float32"]
+precisions = ["float16"]
 
 #params for train_Keras_XXX
 mu = 100
