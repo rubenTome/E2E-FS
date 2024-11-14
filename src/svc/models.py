@@ -10,6 +10,7 @@ import tensorflow as tf
 from keras.activations import relu
 import numpy as np
 #from backend_config import bcknd
+from src.ConvLinear import ConvLinear
 
 ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
 #K.backend = bcknd
@@ -67,11 +68,12 @@ class LinearSVC(object):
         x = input
         if dfs:
             x = DFS()(x)
-        classifier = Dense(
-            nclasses - 1, use_bias=True, kernel_initializer='he_normal',
-            bias_initializer='zeros', input_shape=x.shape[-1:],
-            kernel_regularizer=regularizers.l2(self.mu)
-        )
+        # classifier = Dense(
+        #     nclasses - 1, use_bias=True, kernel_initializer='he_normal',
+        #     bias_initializer='zeros', input_shape=x.shape[-1:],
+        #     kernel_regularizer=regularizers.l2(self.mu)
+        # )
+        classifier = ConvLinear(nclasses - 1)
         output = classifier(x)
         if warming_up:
             kernel_values = self.sklearn_model.coef_.T
