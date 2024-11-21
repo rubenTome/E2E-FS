@@ -1,5 +1,6 @@
 from codecarbon import EmissionsTracker
 import os
+import sys
 import time
 import numpy as np
 import pandas as pd
@@ -129,24 +130,24 @@ def train_Keras_linearSVC(train_X, train_y, test_X, test_y, normalization_func, 
 
     return model
 
-mnist = {"name": "mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "three_layer_nn", "epochs": 60}
-fashion_mnist = {"name": "fashion_mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "three_layer_nn","epochs": 60}
+mnist = {"name": "mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "wrn164", "epochs": 60}
+fashion_mnist = {"name": "fashion_mnist", "nfeat": 39, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
 eurosat = {"name": "eurosat", "nfeat": 2048, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
 colorectal_histology = {"name": "colorectal_histology", "nfeat": 33750, "nclass": 8, "batch": 128, "model": "wrn164","epochs": 60}
-cifar10 = {"name": "cifar10", "nfeat": 512, "nclass": 10, "batch": 128, "model": "three_layer_nn","epochs": 60}
-colon = {"name": "colon", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
-leukemia = {"name": "leukemia", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
-lung181 = {"name": "lung181", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
-lymphoma = {"name": "lymphoma", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
+cifar10 = {"name": "cifar10", "nfeat": 512, "nclass": 10, "batch": 128, "model": "wrn164","epochs": 60}
+colon = {"name": "colon", "nfeat": 10, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
+leukemia = {"name": "leukemia", "nfeat": 10, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
+lung181 = {"name": "lung181", "nfeat": 10, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
+lymphoma = {"name": "lymphoma", "nfeat": 10, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
 gisette = {"name": "gisette", "nfeat": 10, "nclass": 2, "batch": 128, "model": "linearSVC","epochs": 150}
 dexter = {"name": "dexter", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
 gina = {"name": "gina", "nfeat": 10, "nclass": 2, "batch": 16, "model": "linearSVC","epochs": 150}
 madelon = {"name": "madelon", "nfeat": 5, "nclass": 2, "batch": 16, "model": "three_layer_nn","epochs": 150}
 
 #SELECTED DATASETS AND PRECISIONS
-datasets = [mnist, fashion_mnist, cifar10]#, eurosat, colorectal_histology, colon, leukemia, lung181, lymphoma, gisette, dexter, gina, madelon]
+datasets = [mnist, fashion_mnist, cifar10, colon, leukemia, lung181, lymphoma]
 #SOLO USAR 1 PRECISION POR EJECUCION
-precisions = ["float16"]
+prec = sys.argv[1]
 
 #params for train_Keras_XXX
 mu = 100
@@ -164,149 +165,148 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "3"
 loss = losses.CategoricalCrossentropy(from_logits=False)
 print("Num GPUs Available: ", len(tensorflow.config.experimental.list_physical_devices('GPU')))
 for ds in datasets:
-    for prec in precisions:
-        print('using precision:', prec, 'ok')
-        outputFileName = "emissions_" + ds["name"] + "_" + prec + ".csv"
-        tracker = EmissionsTracker(log_level="warning", output_file= "results/" + outputFileName)
-        tracker.start()
-        keras.config.set_floatx(prec)
-        if prec == "float16":
-            K.set_epsilon(1e-2)
+    print('using precision:', prec, 'ok')
+    outputFileName = "emissions_" + ds["name"] + "_" + prec + ".csv"
+    tracker = EmissionsTracker(log_level="warning", output_file= "results/" + outputFileName)
+    tracker.start()
+    keras.config.set_floatx(prec)
+    if prec == "float16":
+        K.set_epsilon(1e-2)
+    else:
+        K.set_epsilon(1e-8)
+    ops.epsilon = lambda : 1e-2 if prec == 'float16' else 1e-8
+    ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
+    microarr = False
+    tf_ds = False
+
+    print("model function:", ds["model"])
+    if ds["model"] == "three_layer_nn":
+        model_fun = three_layer_nn
+    elif ds["model"] == "wrn164":
+        model_fun = wrn164
+    elif ds["model"] == "linearSVC":
+        model_fun = LinearSVC
+    elif ds["model"] == "densenet":
+        model_fun = densenet
+    else:
+        raise Exception("invalid model function")
+
+    print("used dataset:", ds["name"])
+    if ds["name"] == "mnist":
+        dataset = mn.load_data
+        normalization_func = Normalize_KDS
+    elif ds["name"] == "cifar10":
+        dataset = cf.load_data
+    elif ds["name"] == "fashion_mnist":
+        dataset = fs.load_data
+    elif ds["name"] == "colon":
+        microarr = True
+        dataset = cl.load_dataset
+        normalization_func = cl.Normalize
+    elif ds["name"] == "leukemia":
+        microarr = True
+        dataset = lk.load_dataset
+        normalization_func = lk.Normalize
+    elif ds["name"] == "lung181":
+        microarr = True
+        dataset = ln.load_dataset
+        normalization_func = ln.Normalize
+    elif ds["name"] == "lymphoma":
+        microarr = True
+        dataset = lm.load_dataset
+        normalization_func = lm.Normalize
+    elif ds["name"] == "gisette":
+        microarr = True
+        dataset = gs.load_dataset
+        normalization_func = gs.Normalize
+    elif ds["name"] == "dexter":
+        microarr = True
+        dataset = dx.load_dataset
+        normalization_func = dx.Normalize
+    elif ds["name"] == "gina":
+        microarr = True
+        dataset = gn.load_dataset
+        normalization_func = gn.Normalize
+    elif ds["name"] == "madelon":
+        microarr = True
+        dataset = md.load_dataset
+        normalization_func = md.Normalize
+    elif ds["name"] == "eurosat" or ds["name"] == "colorectal_histology":#faltan añadir mas ds de tensorflow
+        tf_ds = True
+    else:
+        raise Exception("Invalid dataset", ds["name"])
+
+    ## LOAD DATA
+    # if temporal, para diferenciar microarray de los demas conjuntos de datos
+    if microarr:
+        dataset_loaded = dataset()
+        data = dataset_loaded["raw"]["data"]
+        label = dataset_loaded["raw"]["label"]
+        #dividimos el dataset para crear train (2/3) y test (1/3)
+        x_train = data[:2 * int(len(data) / 3)]
+        x_test = data[2 * int(len(data) / 3):]
+        mean_data = x_train.mean(axis=0)
+        std_data = x_train.std(axis=0) + 1e-8
+        x_train = (x_train - mean_data) / std_data
+        x_test = (x_test - mean_data) / std_data
+        y_train = to_categorical(label[:2 * int(len(label) / 3)], num_classes=ds["nclass"])
+        y_test = to_categorical(label[2 * int(len(label) / 3):], num_classes=ds["nclass"])
+    elif tf_ds:
+        x_train = []
+        y_train = []
+        x_test = []
+        y_test = []
+        if ds["name"] == "eurosat" or ds["name"] == "colorectal_histology":
+            train_ds, test_ds = tfds.load(ds["name"], as_supervised=True, split=["train[:70%]", "train[70%:]"])
         else:
-            K.set_epsilon(1e-8)
-        ops.epsilon = lambda : 1e-2 if prec == 'float16' else 1e-8
-        ops.cast_to_floatx = lambda x: ops.cast(x, keras.config.floatx())
-        microarr = False
-        tf_ds = False
+            train_ds, test_ds = tfds.load(ds["name"], as_supervised=True, split=["train", "test"])
+        for image, label in tfds.as_numpy(train_ds):
+            x_train.append(image)
+            y_train.append(label)
+        for image, label in tfds.as_numpy(test_ds):
+            x_test.append(image)
+            y_test.append(label)
+        x_train = np.array(x_train)
+        x_test = np.array(x_test)
+        y_train = to_categorical(np.array(y_train).astype(float))
+        y_test = to_categorical(np.array(y_test).astype(float))
+    else:
+        (x_train, y_train), (x_test, y_test) = dataset()
+        if dataset == mn.load_data or dataset == fs.load_data:
+            x_train = np.expand_dims(x_train, axis=-1)
+            x_test = np.expand_dims(x_test, axis=-1)
+        y_train = to_categorical(y_train, num_classes=ds["nclass"])
+        y_test = to_categorical(y_test, num_classes=ds["nclass"])
 
-        print("model function:", ds["model"])
-        if ds["model"] == "three_layer_nn":
-            model_fun = three_layer_nn
-        elif ds["model"] == "wrn164":
-            model_fun = wrn164
-        elif ds["model"] == "linearSVC":
-            model_fun = LinearSVC
-        elif ds["model"] == "densenet":
-            model_fun = densenet
-        else:
-            raise Exception("invalid model function")
+    ## LOAD MODEL AND COMPILE IT (NEVER FORGET TO COMPILE!)
+    if ds["model"] == "linearSVC":
+        model_kwargs = {'mu': mu / len(x_train), 'kernel': kernel, 'degree': 3}
+        model = train_Keras_linearSVC(x_train, y_train, x_test, y_test, normalization_func, model_kwargs,
+                            e2efs_class=e2efs_layers.E2EFSSoft, n_features=ds["nfeat"])
+    elif ds["model"] == "three_layer_nn":
+        model = three_layer_nn_v2(input_shape=x_train.shape[1:], nclasses=ds["nclass"], regularization=regularization)
+        model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss=loss)
+    else:
+        model = model_fun(input_shape=x_train.shape[1:], nclasses=ds["nclass"], regularization=5e-4)
+        model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss=loss)
+    print(model.summary())
+    ## LOAD E2EFS AND RUN IT
+    fs_class = models.E2EFSSoft(n_features_to_select=ds["nfeat"]).attach(model).fit(
+        x_train, y_train, batch_size=ds["batch"], validation_data=(x_test, y_test), verbose=2
+    )
 
-        print("used dataset:", ds["name"])
-        if ds["name"] == "mnist":
-            dataset = mn.load_data
-            normalization_func = Normalize_KDS
-        elif ds["name"] == "cifar10":
-            dataset = cf.load_data
-        elif ds["name"] == "fashion_mnist":
-            dataset = fs.load_data
-        elif ds["name"] == "colon":
-            microarr = True
-            dataset = cl.load_dataset
-            normalization_func = cl.Normalize
-        elif ds["name"] == "leukemia":
-            microarr = True
-            dataset = lk.load_dataset
-            normalization_func = lk.Normalize
-        elif ds["name"] == "lung181":
-            microarr = True
-            dataset = ln.load_dataset
-            normalization_func = ln.Normalize
-        elif ds["name"] == "lymphoma":
-            microarr = True
-            dataset = lm.load_dataset
-            normalization_func = lm.Normalize
-        elif ds["name"] == "gisette":
-            microarr = True
-            dataset = gs.load_dataset
-            normalization_func = gs.Normalize
-        elif ds["name"] == "dexter":
-            microarr = True
-            dataset = dx.load_dataset
-            normalization_func = dx.Normalize
-        elif ds["name"] == "gina":
-            microarr = True
-            dataset = gn.load_dataset
-            normalization_func = gn.Normalize
-        elif ds["name"] == "madelon":
-            microarr = True
-            dataset = md.load_dataset
-            normalization_func = md.Normalize
-        elif ds["name"] == "eurosat" or ds["name"] == "colorectal_histology":#faltan añadir mas ds de tensorflow
-            tf_ds = True
-        else:
-            raise Exception("Invalid dataset", ds["name"])
+    ## FINE TUNING
+    fs_class.fine_tuning(x_train, y_train, epochs=ds["epochs"], batch_size=ds["batch"], validation_data=(x_test, y_test),
+                        callbacks=[LearningRateScheduler(scheduler_ft)], verbose=2)
+    print('FEATURE_RANKING :', fs_class.get_ranking())
+    acc = fs_class.get_model().evaluate(x_test, y_test, batch_size=ds["batch"])[-1]
+    print('ACCURACY : ', acc)
+    nnz = np.count_nonzero(fs_class.get_mask())
+    print('FEATURE_MASK NNZ :', nnz)
 
-        ## LOAD DATA
-        # if temporal, para diferenciar microarray de los demas conjuntos de datos
-        if microarr:
-            dataset_loaded = dataset()
-            data = dataset_loaded["raw"]["data"]
-            label = dataset_loaded["raw"]["label"]
-            #dividimos el dataset para crear train (2/3) y test (1/3)
-            x_train = data[:2 * int(len(data) / 3)]
-            x_test = data[2 * int(len(data) / 3):]
-            mean_data = x_train.mean(axis=0)
-            std_data = x_train.std(axis=0) + 1e-8
-            x_train = (x_train - mean_data) / std_data
-            x_test = (x_test - mean_data) / std_data
-            y_train = to_categorical(label[:2 * int(len(label) / 3)], num_classes=ds["nclass"])
-            y_test = to_categorical(label[2 * int(len(label) / 3):], num_classes=ds["nclass"])
-        elif tf_ds:
-            x_train = []
-            y_train = []
-            x_test = []
-            y_test = []
-            if ds["name"] == "eurosat" or ds["name"] == "colorectal_histology":
-                train_ds, test_ds = tfds.load(ds["name"], as_supervised=True, split=["train[:70%]", "train[70%:]"])
-            else:
-                train_ds, test_ds = tfds.load(ds["name"], as_supervised=True, split=["train", "test"])
-            for image, label in tfds.as_numpy(train_ds):
-                x_train.append(image)
-                y_train.append(label)
-            for image, label in tfds.as_numpy(test_ds):
-                x_test.append(image)
-                y_test.append(label)
-            x_train = np.array(x_train)
-            x_test = np.array(x_test)
-            y_train = to_categorical(np.array(y_train).astype(float))
-            y_test = to_categorical(np.array(y_test).astype(float))
-        else:
-            (x_train, y_train), (x_test, y_test) = dataset()
-            if dataset == mn.load_data or dataset == fs.load_data:
-                x_train = np.expand_dims(x_train, axis=-1)
-                x_test = np.expand_dims(x_test, axis=-1)
-            y_train = to_categorical(y_train, num_classes=ds["nclass"])
-            y_test = to_categorical(y_test, num_classes=ds["nclass"])
+    tracker.stop()
 
-        ## LOAD MODEL AND COMPILE IT (NEVER FORGET TO COMPILE!)
-        if ds["model"] == "linearSVC":
-            model_kwargs = {'mu': mu / len(x_train), 'kernel': kernel, 'degree': 3}
-            model = train_Keras_linearSVC(x_train, y_train, x_test, y_test, normalization_func, model_kwargs,
-                                e2efs_class=e2efs_layers.E2EFSSoft, n_features=ds["nfeat"])
-        elif ds["model"] == "three_layer_nn":
-            model = three_layer_nn_v2(input_shape=x_train.shape[1:], nclasses=ds["nclass"], regularization=regularization)
-            model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss=loss)
-        else:
-            model = model_fun(input_shape=x_train.shape[1:], nclasses=ds["nclass"], regularization=5e-4)
-            model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss=loss)
-        print(model.summary())
-        ## LOAD E2EFS AND RUN IT
-        fs_class = models.E2EFSSoft(n_features_to_select=ds["nfeat"]).attach(model).fit(
-            x_train, y_train, batch_size=ds["batch"], validation_data=(x_test, y_test), verbose=2
-        )
-
-        ## FINE TUNING
-        fs_class.fine_tuning(x_train, y_train, epochs=ds["epochs"], batch_size=ds["batch"], validation_data=(x_test, y_test),
-                            callbacks=[LearningRateScheduler(scheduler_ft)], verbose=2)
-        print('FEATURE_RANKING :', fs_class.get_ranking())
-        acc = fs_class.get_model().evaluate(x_test, y_test, batch_size=ds["batch"])[-1]
-        print('ACCURACY : ', acc)
-        nnz = np.count_nonzero(fs_class.get_mask())
-        print('FEATURE_MASK NNZ :', nnz)
-
-        tracker.stop()
-
-        df = pd.read_csv("results/" + outputFileName)
-        df["accuracy"] = acc
-        df["feature_mask"] = nnz
-        df.to_csv("results/" + outputFileName, index=False)
+    df = pd.read_csv("results/" + outputFileName)
+    df["accuracy"] = acc
+    df["feature_mask"] = nnz
+    df.to_csv("results/" + outputFileName, index=False)
