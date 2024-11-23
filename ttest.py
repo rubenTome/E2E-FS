@@ -4,20 +4,28 @@ from scipy import stats
 #facer o analisis para cada conxunto de datos, 
 #mirar significancia, si siguen unha distribucion normal, e reflexalo na tabla
 
-fl16_fmnist   = pd.read_csv("results/final_mean10/merged/float16_merged_fmnist.csv")
-fl32_fmnist   = pd.read_csv("results/final_mean10/merged/float32_merged_fmnist.csv")
-fl16_mnist    = pd.read_csv("results/final_mean10/merged/float16_merged_mnist.csv")
-fl32_mnist    = pd.read_csv("results/final_mean10/merged/float32_merged_mnist.csv")
-fl16_cifar10  = pd.read_csv("results/final_mean10/merged/float16_merged_cifar10.csv")
-fl32_cifar10  = pd.read_csv("results/final_mean10/merged/float32_merged_cifar10.csv")
-fl16_colon    = pd.read_csv("results/final_mean10/merged/float16_merged_colon.csv")
-fl32_colon    = pd.read_csv("results/final_mean10/merged/float32_merged_colon.csv")
-fl16_leukemia = pd.read_csv("results/final_mean10/merged/float16_merged_leukemia.csv")
-fl32_leukemia = pd.read_csv("results/final_mean10/merged/float32_merged_leukemia.csv")
-fl16_lung181  = pd.read_csv("results/final_mean10/merged/float16_merged_lung181.csv")
-fl32_lung181  = pd.read_csv("results/final_mean10/merged/float32_merged_lung181.csv")
-fl16_lymphoma = pd.read_csv("results/final_mean10/merged/float16_merged_lymphoma.csv")
-fl32_lymphoma = pd.read_csv("results/final_mean10/merged/float32_merged_lymphoma.csv")
+fl16_fmnist         = pd.read_csv("results/final_mean10/merged/float16_merged_fmnist.csv")
+fl32_fmnist         = pd.read_csv("results/final_mean10/merged/float32_merged_fmnist.csv")
+fl16_mnist          = pd.read_csv("results/final_mean10/merged/float16_merged_mnist.csv")
+fl32_mnist          = pd.read_csv("results/final_mean10/merged/float32_merged_mnist.csv")
+fl16_cifar10        = pd.read_csv("results/final_mean10/merged/float16_merged_cifar10.csv")
+fl32_cifar10        = pd.read_csv("results/final_mean10/merged/float32_merged_cifar10.csv")
+fl16_colon          = pd.read_csv("results/final_mean10/merged/float16_merged_colon.csv")
+fl32_colon          = pd.read_csv("results/final_mean10/merged/float32_merged_colon.csv")
+fl16_leukemia       = pd.read_csv("results/final_mean10/merged/float16_merged_leukemia.csv")
+fl32_leukemia       = pd.read_csv("results/final_mean10/merged/float32_merged_leukemia.csv")
+fl16_lung181        = pd.read_csv("results/final_mean10/merged/float16_merged_lung181.csv")
+fl32_lung181        = pd.read_csv("results/final_mean10/merged/float32_merged_lung181.csv")
+fl16_lymphoma       = pd.read_csv("results/final_mean10/merged/float16_merged_lymphoma.csv")
+fl32_lymphoma       = pd.read_csv("results/final_mean10/merged/float32_merged_lymphoma.csv")
+fl16_colon_dense    = pd.read_csv("results/dense/merged/fl16_merged_colon_dense.csv")
+fl32_colon_dense    = pd.read_csv("results/dense/merged/fl32_merged_colon_dense.csv")
+fl16_leukemia_dense = pd.read_csv("results/dense/merged/fl16_merged_leukemia_dense.csv")
+fl32_leukemia_dense = pd.read_csv("results/dense/merged/fl32_merged_leukemia_dense.csv")
+fl16_lung181_dense  = pd.read_csv("results/dense/merged/fl16_merged_lung181_dense.csv")
+fl32_lung181_dense  = pd.read_csv("results/dense/merged/fl32_merged_lung181_dense.csv")
+fl16_lymphoma_dense = pd.read_csv("results/dense/merged/fl16_merged_lymphoma_dense.csv")
+fl32_lymphoma_dense = pd.read_csv("results/dense/merged/fl32_merged_lymphoma_dense.csv")
 
 fl16_microarray = pd.concat([fl16_colon, fl16_leukemia, fl16_lung181, fl16_lymphoma])
 fl32_microarray = pd.concat([fl32_colon, fl32_leukemia, fl32_lung181, fl32_lymphoma])
@@ -33,9 +41,13 @@ pairs = [
     [fl16_fmnist, fl32_fmnist, "FMNIST"],
     [fl16_cifar10, fl32_cifar10, "CIFAR10"],
     [fl16_colon, fl32_colon, "COLON"],
+    [fl16_colon_dense, fl32_colon_dense, "COLON_DENSE"],
     [fl16_leukemia, fl32_leukemia, "LEUKEMIA"],
+    [fl16_leukemia_dense, fl32_leukemia_dense, "LEUKEMIA_DENSE"],
     [fl16_lung181, fl32_lung181, "LUNG181"],
+    [fl16_lung181_dense, fl32_lung181_dense, "LUNG181_DENSE"],
     [fl16_lymphoma, fl32_lymphoma, "LYMHOMA"],
+    [fl16_lymphoma_dense, fl32_lymphoma_dense, "LYMHOMA_DENSE"],
     [fl16_images, fl32_images, "IMAGENES"], 
     [fl16_microarray, fl32_microarray, "MICROARRAY"], 
     [merged_fl16, merged_fl32, "MERGED"]

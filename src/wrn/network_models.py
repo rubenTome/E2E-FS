@@ -35,7 +35,7 @@ def three_layer_nn(input_shape, nclasses=2, bn=True, kernel_initializer='he_norm
 
     return model
 
-def three_layer_nn_v2(input_shape, nclasses=2, bn=True, kernel_initializer='he_normal',
+def three_layer_nn_v2(input_shape, nclasses=2, isDense=False, bn=True, kernel_initializer='he_normal',
                    dropout=0.0, dfs=False, regularization=5e-4, layer_dims=[50, 25, 10], momentum=0.9):
 
     layersL = [layers.InputLayer(shape=input_shape)]
@@ -51,18 +51,22 @@ def three_layer_nn_v2(input_shape, nclasses=2, bn=True, kernel_initializer='he_n
     if dfs:
         layersL.append(DFS())
     for layer_dim in layer_dims:
-        # layersL.append(layers.Dense(layer_dim, use_bias=not bn, kernel_initializer=kernel_initializer,
-        #           kernel_regularizer=l2(regularization) if regularization > 0.0 else None))
-        layersL.append(ConvLinear(layer_dim))
+        if isDense:
+            layersL.append(layers.Dense(layer_dim, use_bias=not bn, kernel_initializer=kernel_initializer,
+                    kernel_regularizer=l2(regularization) if regularization > 0.0 else None))
+        else:
+            layersL.append(ConvLinear(layer_dim))
         if bn:
             layersL.append(layers.BatchNormalization(axis=channel_axis, momentum=momentum, epsilon=1e-5, gamma_initializer='ones'))
         if dropout > 0.0:
             layers.append(layers.Dropout(dropout))
         layersL.append(layers.Activation('relu'))
 
-    # layersL.append(layers.Dense(nclasses, use_bias=True, kernel_initializer=kernel_initializer,
-    #           kernel_regularizer=l2(regularization) if regularization > 0.0 else None))
-    layersL.append(ConvLinear(nclasses))
+    if isDense:
+        layersL.append(layers.Dense(nclasses, use_bias=True, kernel_initializer=kernel_initializer,
+                kernel_regularizer=l2(regularization) if regularization > 0.0 else None))
+    else:
+        layersL.append(ConvLinear(nclasses))
     layersL.append(layers.Activation('softmax'))
 
     model = keras.Sequential(layersL)

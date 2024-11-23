@@ -154,6 +154,45 @@ wilcoxon accuracy: WilcoxonResult(statistic=23.5, pvalue=0.76953125)
 --------------------------------------------------
 
 
+COLON_DENSE
+info fl16:
+         duration  emissions   accuracy  feature_mask
+count  10.000000  10.000000  10.000000     10.000000
+mean   75.252050   0.000934   0.727295      9.900000
+std     6.696013   0.000086   0.056854      0.316228
+min    65.798070   0.000819   0.636230      9.000000
+25%    71.552549   0.000886   0.692993     10.000000
+50%    74.901762   0.000924   0.750000     10.000000
+75%    78.526247   0.000985   0.772949     10.000000
+max    86.845858   0.001084   0.772949     10.000000
+info fl32:
+         duration  emissions   accuracy  feature_mask
+count  10.000000  10.000000  10.000000          10.0
+mean   81.366452   0.001011   0.731818          10.0
+std     7.435913   0.000089   0.058486           0.0
+min    67.058028   0.000838   0.590909          10.0
+25%    76.730079   0.000953   0.727273          10.0
+50%    81.093312   0.001014   0.727273          10.0
+75%    86.229599   0.001084   0.761364          10.0
+max    90.706754   0.001124   0.818182          10.0
+
+shapiro fl16 duration: ShapiroResult(statistic=0.9646692898858066, pvalue=0.8375080750528737)
+shapiro fl32 duration: ShapiroResult(statistic=0.9467161679182968, pvalue=0.6298415906752944)
+shapiro fl16 emissions: ShapiroResult(statistic=0.9633210695395409, pvalue=0.8229747646447437)
+shapiro fl32 emissions: ShapiroResult(statistic=0.9494363432036879, pvalue=0.6618359652020182)
+shapiro fl16 accuracy: ShapiroResult(statistic=0.7781913771386819, pvalue=0.007869225882267468)
+shapiro fl32 accuracy: ShapiroResult(statistic=0.7812757509919468, pvalue=0.00858019962280255)
+
+ttest duration: TtestResult(statistic=-1.6185318308901417, pvalue=0.14000142637156487, df=9)
+ttest emissions: TtestResult(statistic=-1.6674724270330012, pvalue=0.12976803056173453, df=9)
+ttest accuracy TtestResult(statistic=-0.28536791528830285, pvalue=0.7818208028284017, df=9)
+
+wilcoxon duration: WilcoxonResult(statistic=16.0, pvalue=0.275390625)
+wilcoxon emissions: WilcoxonResult(statistic=14.0, pvalue=0.193359375)
+wilcoxon accuracy: WilcoxonResult(statistic=27.0, pvalue=1.0)
+--------------------------------------------------
+
+
 LEUKEMIA
 info fl16:
           duration  emissions   accuracy  feature_mask
@@ -190,6 +229,45 @@ ttest accuracy TtestResult(statistic=-0.3621114856779142, pvalue=0.7256254175773
 wilcoxon duration: WilcoxonResult(statistic=27.0, pvalue=1.0)
 wilcoxon emissions: WilcoxonResult(statistic=24.0, pvalue=0.76953125)
 wilcoxon accuracy: WilcoxonResult(statistic=24.0, pvalue=0.76953125)
+--------------------------------------------------
+
+
+LEUKEMIA_DENSE
+info fl16:
+          duration  emissions   accuracy  feature_mask
+count   10.000000  10.000000  10.000000          10.0
+mean    82.230628   0.001021   0.887451          10.0
+std     14.421960   0.000175   0.073644           0.0
+min     60.334629   0.000760   0.750000          10.0
+25%     69.920524   0.000868   0.875000          10.0
+50%     83.047886   0.001038   0.895752          10.0
+75%     94.412298   0.001154   0.916504          10.0
+max    101.060653   0.001260   1.000000          10.0
+info fl32:
+          duration  emissions   accuracy  feature_mask
+count   10.000000  10.000000  10.000000     10.000000
+mean    88.395352   0.001097   0.866667      9.900000
+std     14.856449   0.000186   0.047304      0.316228
+min     70.669867   0.000879   0.791667      9.000000
+25%     77.626044   0.000951   0.843750     10.000000
+50%     83.694345   0.001036   0.875000     10.000000
+75%    103.333504   0.001293   0.906250     10.000000
+max    108.712937   0.001323   0.916667     10.000000
+
+shapiro fl16 duration: ShapiroResult(statistic=0.921005276560102, pvalue=0.36541568886713793)
+shapiro fl32 duration: ShapiroResult(statistic=0.865855728898806, pvalue=0.0894157211872663)
+shapiro fl16 emissions: ShapiroResult(statistic=0.9227277024588733, pvalue=0.38026784656959584)
+shapiro fl32 emissions: ShapiroResult(statistic=0.8320664223939414, pvalue=0.03543342326790245)
+shapiro fl16 accuracy: ShapiroResult(statistic=0.9384190447275144, pvalue=0.5355596310708768)
+shapiro fl32 accuracy: ShapiroResult(statistic=0.8482082408486413, pvalue=0.05530449091809619)
+
+ttest duration: TtestResult(statistic=-1.0454855978870798, pvalue=0.32306456537756734, df=9)
+ttest emissions: TtestResult(statistic=-1.0294291036005914, pvalue=0.3301481991906077, df=9)
+ttest accuracy TtestResult(statistic=0.8568284542254196, pvalue=0.4137717168240843, df=9)
+
+wilcoxon duration: WilcoxonResult(statistic=21.0, pvalue=0.556640625)
+wilcoxon emissions: WilcoxonResult(statistic=21.0, pvalue=0.556640625)
+wilcoxon accuracy: WilcoxonResult(statistic=14.0, pvalue=0.5739915504228602)
 --------------------------------------------------
 
 
@@ -232,6 +310,45 @@ wilcoxon accuracy: WilcoxonResult(statistic=13.0, pvalue=0.4811401552237462)
 --------------------------------------------------
 
 
+LUNG181_DENSE
+info fl16:
+         duration  emissions   accuracy  feature_mask
+count  10.000000  10.000000  10.000000     10.000000
+mean   37.011564   0.000457   0.988525      9.700000
+std     1.208697   0.000017   0.015527      0.483046
+min    35.098610   0.000426   0.967285      9.000000
+25%    36.354065   0.000451   0.971313      9.250000
+50%    36.706451   0.000453   1.000000     10.000000
+75%    37.536603   0.000460   1.000000     10.000000
+max    39.145267   0.000486   1.000000     10.000000
+info fl32:
+         duration  emissions   accuracy  feature_mask
+count  10.000000  10.000000  10.000000          10.0
+mean   38.943234   0.000485   0.991803          10.0
+std     3.641033   0.000047   0.015932           0.0
+min    35.559713   0.000432   0.950820          10.0
+25%    37.097551   0.000459   0.987705          10.0
+50%    37.759749   0.000474   1.000000          10.0
+75%    39.951583   0.000497   1.000000          10.0
+max    47.948455   0.000601   1.000000          10.0
+
+shapiro fl16 duration: ShapiroResult(statistic=0.9477888802890145, pvalue=0.642418644625177)
+shapiro fl32 duration: ShapiroResult(statistic=0.809274204423144, pvalue=0.018790149598062057)
+shapiro fl16 emissions: ShapiroResult(statistic=0.9081631235326757, pvalue=0.26861047955380174)
+shapiro fl32 emissions: ShapiroResult(statistic=0.8389470128585284, pvalue=0.04286057715500409)
+shapiro fl16 accuracy: ShapiroResult(statistic=0.6860668093128799, pvalue=0.0005974159510759659)
+shapiro fl32 accuracy: ShapiroResult(statistic=0.6032696464586276, pvalue=6.049899604524944e-05)
+
+ttest duration: TtestResult(statistic=-1.372587589107619, pvalue=0.2031121376723035, df=9)
+ttest emissions: TtestResult(statistic=-1.4702830161550546, pvalue=0.1755588588971213, df=9)
+ttest accuracy TtestResult(statistic=-0.4086443362496837, pvalue=0.6923529337748595, df=9)
+
+wilcoxon duration: WilcoxonResult(statistic=14.0, pvalue=0.193359375)
+wilcoxon emissions: WilcoxonResult(statistic=14.0, pvalue=0.193359375)
+wilcoxon accuracy: WilcoxonResult(statistic=8.0, pvalue=0.5961126657233238)
+--------------------------------------------------
+
+
 LYMHOMA
 info fl16:
           duration  emissions   accuracy  feature_mask
@@ -268,6 +385,45 @@ ttest accuracy TtestResult(statistic=-0.7123814056484453, pvalue=0.4942813360039
 wilcoxon duration: WilcoxonResult(statistic=20.0, pvalue=0.4921875)
 wilcoxon emissions: WilcoxonResult(statistic=20.0, pvalue=0.4921875)
 wilcoxon accuracy: WilcoxonResult(statistic=18.0, pvalue=0.375)
+--------------------------------------------------
+
+
+LYMHOMA_DENSE
+info fl16:
+          duration  emissions   accuracy  feature_mask
+count   10.000000  10.000000  10.000000          10.0
+mean   118.597524   0.001477   0.719971          10.0
+std     12.379144   0.000155   0.087733           0.0
+min    106.164596   0.001292   0.600098          10.0
+25%    111.525708   0.001396   0.666504          10.0
+50%    114.616150   0.001431   0.733398          10.0
+75%    121.734481   0.001525   0.783203          10.0
+max    147.088820   0.001831   0.866699          10.0
+info fl32:
+          duration  emissions   accuracy  feature_mask
+count   10.000000  10.000000  10.000000          10.0
+mean   160.178421   0.001997   0.686667          10.0
+std      9.832173   0.000119   0.154120           0.0
+min    145.783121   0.001803   0.466667          10.0
+25%    154.454811   0.001933   0.566667          10.0
+50%    159.015023   0.001991   0.700000          10.0
+75%    168.547695   0.002104   0.733333          10.0
+max    175.030391   0.002135   1.000000          10.0
+
+shapiro fl16 duration: ShapiroResult(statistic=0.8360579871848601, pvalue=0.039572559134104186)
+shapiro fl32 duration: ShapiroResult(statistic=0.9414843636947412, pvalue=0.5696456765427573)
+shapiro fl16 emissions: ShapiroResult(statistic=0.8696042911498854, pvalue=0.09890920959569731)
+shapiro fl32 emissions: ShapiroResult(statistic=0.9130149068698877, pvalue=0.3023489179848058)
+shapiro fl16 accuracy: ShapiroResult(statistic=0.941895160923437, pvalue=0.57428789307375)
+shapiro fl32 accuracy: ShapiroResult(statistic=0.9364773006162007, pvalue=0.5145213486168039)
+
+ttest duration: TtestResult(statistic=-6.523889091567075, pvalue=0.00010840088301806041, df=9)
+ttest emissions: TtestResult(statistic=-6.544710282111557, pvalue=0.00010581682254645717, df=9)
+ttest accuracy TtestResult(statistic=0.5902411896666893, pvalue=0.5695503647697292, df=9)
+
+wilcoxon duration: WilcoxonResult(statistic=1.0, pvalue=0.00390625)
+wilcoxon emissions: WilcoxonResult(statistic=1.0, pvalue=0.00390625)
+wilcoxon accuracy: WilcoxonResult(statistic=22.0, pvalue=0.625)
 --------------------------------------------------
 
 

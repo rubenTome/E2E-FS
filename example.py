@@ -146,8 +146,8 @@ madelon = {"name": "madelon", "nfeat": 5, "nclass": 2, "batch": 16, "model": "th
 
 #SELECTED DATASETS AND PRECISIONS
 datasets = [mnist, fashion_mnist, cifar10, colon, leukemia, lung181, lymphoma]
-#SOLO USAR 1 PRECISION POR EJECUCION
 prec = sys.argv[1]
+exec_n = sys.argv[2]
 
 #params for train_Keras_XXX
 mu = 100
@@ -166,7 +166,7 @@ loss = losses.CategoricalCrossentropy(from_logits=False)
 print("Num GPUs Available: ", len(tensorflow.config.experimental.list_physical_devices('GPU')))
 for ds in datasets:
     print('using precision:', prec, 'ok')
-    outputFileName = "emissions_" + ds["name"] + "_" + prec + ".csv"
+    outputFileName = exec_n + "_emissions_" + ds["name"] + "_" + prec + ".csv"
     tracker = EmissionsTracker(log_level="warning", output_file= "results/" + outputFileName)
     tracker.start()
     keras.config.set_floatx(prec)
@@ -284,6 +284,7 @@ for ds in datasets:
         model = train_Keras_linearSVC(x_train, y_train, x_test, y_test, normalization_func, model_kwargs,
                             e2efs_class=e2efs_layers.E2EFSSoft, n_features=ds["nfeat"])
     elif ds["model"] == "three_layer_nn":
+        #it do not use Dense layers as default
         model = three_layer_nn_v2(input_shape=x_train.shape[1:], nclasses=ds["nclass"], regularization=regularization)
         model.compile(optimizer=optimizers.SGD(), metrics=['acc'], loss=loss)
     else:
