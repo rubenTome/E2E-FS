@@ -85,7 +85,7 @@ class DefaultClassifier(pl.LightningModule):
         self.log("epoch_train_accuracy", train_accuracy)
         self.train_acc.reset()
         self.train_ba.reset()
-        print('train accuracy: {:.4f}, BA: {:.4f}'.format(train_accuracy, train_ba), end='\t')
+        print('train accuracy: {:.4f}, BA: {:.4f}'.format(train_accuracy, train_ba))
 
     def on_validation_epoch_end(self):
         # compute metrics
@@ -97,7 +97,7 @@ class DefaultClassifier(pl.LightningModule):
         # reset all metrics
         self.val_acc.reset()
         self.val_ba.reset()
-        print('Epoch {} val accuracy: {:.4f}, BA: {:.4f}'.format(self.current_epoch, val_accuracy, val_ba), end='\t')
+        print('Epoch {}\n\tval accuracy: {:.4f}, BA: {:.4f}'.format(self.current_epoch, val_accuracy, val_ba), end='\n\t')
 
     def on_test_epoch_end(self):
         # compute metrics

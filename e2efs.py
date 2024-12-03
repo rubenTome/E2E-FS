@@ -11,9 +11,10 @@ from src.callbacks import MyEarlyStopping
 
 class E2EFSBase:
 
-    def __init__(self, n_features_to_select, network=None, mask_name='E2EFSSoftMask', precision='32',
+    def __init__(self, n_features_to_select, feature_importance, network=None, mask_name='E2EFSSoftMask', precision='32',
                  balanced=True, regularization='default'):
         self.n_features_to_select = n_features_to_select
+        self.feature_importance = feature_importance
         self.network = network
         self.model = None
         self.mask_name = mask_name
@@ -111,14 +112,14 @@ class E2EFSBase:
         self.model.e2efs_layer.force_kernel()
         return self
 
-    def fit(self, X, y, validation_data=None, batch_size=32, max_epochs=500, verbose=True):
+    def fit(self, X, y, validation_data=None, batch_size=32, max_epochs=500, verbose=True, wait=1):
         self.task = self.__select_default_task(X, y)
         self.model = self.__build_model__(X, y)
         trainer_opts = {
             'callbacks': [
                 MyEarlyStopping(
                     monitor="nfeats", mode="min", min_delta=0, stopping_threshold=self.n_features_to_select + 1,
-                    patience=1000
+                    patience=1000, feature_importance=self.feature_importance, wait=wait
                 )
             ],
             'enable_checkpointing': False,
@@ -162,11 +163,13 @@ class E2EFSBase:
     def get_mask(self):
         return self.model.e2efs_layer.kernel_activation().detach().cpu().numpy()
 
+    def get_nfeats(self):
+        return self.model.e2efs_layer.get_n_alive().item()
 
 class E2EFSSoft(E2EFSBase):
 
-    def __init__(self, n_features_to_select, **kwargs):
-        super(E2EFSSoft, self).__init__(n_features_to_select, **kwargs)
+    def __init__(self, n_features_to_select, feature_importance, **kwargs):
+        super(E2EFSSoft, self).__init__(n_features_to_select, feature_importance, **kwargs)
 
 
 class E2EFS(E2EFSBase):

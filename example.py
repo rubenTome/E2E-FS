@@ -4,6 +4,7 @@ import e2efs
 
 
 n_features_to_select = 10
+feature_importance = 0.25
 
 if __name__ == '__main__':
 
@@ -20,7 +21,7 @@ if __name__ == '__main__':
     test_data = normalize.transform(test_data)
 
     ## LOAD E2EFSSoft model
-    model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select)
+    model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, feature_importance=feature_importance)
 
     ## OPTIONAL: Load E2EFS Model
     # model = e2efs.E2EFS(n_features_to_select=n_features_to_select)
@@ -32,7 +33,7 @@ if __name__ == '__main__':
     model.fit(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=2000)
 
     ## FINETUNE THE MODEL
-    model.fine_tune(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=100)
+    #model.fine_tune(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=100)
 
     ## GET THE MODEL RESULTS
     metrics = model.evaluate(test_data, test_label)
@@ -45,3 +46,7 @@ if __name__ == '__main__':
     ## GET THE RANKING
     ranking = model.get_ranking()
     print('RANKING:', ranking)
+
+    print("NUMBER OF FEATURES:", model.get_nfeats())
+
+    print("ALPHA MAX:", feature_importance)
