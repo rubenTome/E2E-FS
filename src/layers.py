@@ -63,11 +63,6 @@ class E2EFSMaskBase(nn.Module):
         #     self.kernel.data = torch.zeros_like(self.kernel.data)
         #     self.kernel.data[pos] = 1.
 
-    def force_kernel(self):
-        _, pos = torch.topk(self.heatmap, self.n_features_to_select)
-        self.kernel.data = torch.zeros_like(self.kernel.data)
-        self.kernel.data[pos] = 1.
-
     def get_n_alive(self):
         return (self.kernel_activation() > 0).sum()
 

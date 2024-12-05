@@ -109,7 +109,6 @@ class E2EFSBase:
         # trainer = MyTrainer(enable_model_summary=verbose, enable_progress_bar=False, profiler='simple', **trainer_opts)
         trainer.fit(self.model, train_loader, val_loader)
         self.model.fitted = True
-        self.model.e2efs_layer.force_kernel()
         return self
 
     def fit(self, X, y, validation_data=None, batch_size=32, max_epochs=500, verbose=True, wait=1):
