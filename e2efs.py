@@ -7,6 +7,9 @@ import lightning as pl
 from copy import deepcopy
 from src.dataloaders import FastTensorDataLoader
 from src.callbacks import MyEarlyStopping
+from src.precision import FP_PRECISION
+
+torch.set_default_dtype(FP_PRECISION)
 
 
 class E2EFSBase:

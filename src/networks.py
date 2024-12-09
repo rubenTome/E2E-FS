@@ -1,6 +1,9 @@
 import torch
 from torch import nn
 import numpy as np
+from .precision import FP_PRECISION
+
+torch.set_default_dtype(FP_PRECISION)
 
 
 class LinearModel(nn.Module):

@@ -4,21 +4,27 @@ import e2efs
 import pandas as pd
 from codecarbon import EmissionsTracker
 import os
-
+import sys
+from src.precision import set_precision
 
 n_features_to_select = 10
 feature_importance = 0.5
 wait = 1
 N = 20
+precision = sys.argv[1]
+print("Precision:", precision)
+set_precision(precision)
 
 def decimal_range(start, stop, increment):
     while start < stop:
         yield start
         start += increment
 
-for fi in decimal_range(.5, feature_importance + 0.05, 0.05):
+for fi in decimal_range(.0, feature_importance, 0.05):
     df = pd.DataFrame(columns=["test_acc", "nfeat", "max_alpha", "emissions"])
-    name = "results/colon_a" + str(round(fi, 4))
+    name = "colon_a" + str(round(fi, 4)) + "_fp" + precision
+    directory = "results/fp" + precision
+    f = open(directory + "/colon/stats/" + name + ".txt", "w")
     for n in range(N):
         tracker = EmissionsTracker(tracking_mode="process")
         tracker.start()
@@ -54,10 +60,8 @@ for fi in decimal_range(.5, feature_importance + 0.05, 0.05):
             print('RANKING:', ranking)
             nf = model.get_nfeats()
             print("NUMBER OF FEATURES:", nf)
-            print("ALPHA MAX:", feature_importance)
-            print(csvf)
-            df.loc[n] = [round(metrics["test_accuracy"], 4), nf, feature_importance, emissions]
+            print("ALPHA MAX:", fi)
+            df.loc[n] = [round(metrics["test_accuracy"], 4), nf, fi, emissions]
             os.remove("emissions.csv") 
-            df.to_csv(name + ".csv", index=False)
-    f = open(name + ".txt", "w")
+            df.to_csv(directory + "/colon/csv/" + name + ".csv", index=False)
     f.write(df.describe().to_string())

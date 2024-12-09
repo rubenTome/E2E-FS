@@ -1,5 +1,7 @@
 import torch
+from .precision import FP_PRECISION
 
+torch.set_default_dtype(FP_PRECISION)
 
 class FastTensorDataLoader:
     """
