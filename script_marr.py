@@ -21,7 +21,7 @@ def decimal_range(start, stop, increment):
         start += increment
 
 for fi in decimal_range(.0, feature_importance, 0.05):
-    df = pd.DataFrame(columns=["test_acc", "nfeat", "max_alpha", "emissions"])
+    df = pd.DataFrame(columns=["test_acc", "nfeat", "max_alpha", "emissions", "duration"])
     name = "colon_a" + str(round(fi, 4)) + "_fp" + precision
     directory = "results/fp" + precision
     f = open(directory + "/colon/stats/" + name + ".txt", "w")
@@ -49,6 +49,7 @@ for fi in decimal_range(.0, feature_importance, 0.05):
             tracker.stop()
             csvf = pd.read_csv("emissions.csv")
             emissions = csvf["emissions"].values[0]
+            duration = csvf["duration"].values[0]
             ## GET THE MODEL RESULTS
             metrics = model.evaluate(test_data, test_label)
             print(metrics)
@@ -61,7 +62,7 @@ for fi in decimal_range(.0, feature_importance, 0.05):
             nf = model.get_nfeats()
             print("NUMBER OF FEATURES:", nf)
             print("ALPHA MAX:", fi)
-            df.loc[n] = [round(metrics["test_accuracy"], 4), nf, fi, emissions]
+            df.loc[n] = [round(metrics["test_accuracy"], 4), nf, fi, emissions, duration]
             os.remove("emissions.csv") 
             df.to_csv(directory + "/colon/csv/" + name + ".csv", index=False)
     f.write(df.describe().to_string())
