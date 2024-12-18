@@ -20,7 +20,7 @@ precision = sys.argv[1]
 print("Precision:", precision)
 set_precision(precision)
 kfold = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=N, random_state=42)
-network = "conv"
+network = None#"conv"
 
 def decimal_range(start, stop, increment):
     while start < stop:
