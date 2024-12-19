@@ -130,7 +130,7 @@ if __name__ == '__main__':
                     if j > 0:
                         df.loc[j] = [round(metrics["test_accuracy"], 4), round(balanced_acc, 4), nf, fi, emissions, duration]
                     os.remove("emissions.csv")
-                    df.to_csv(directory + "/" +"/csv/" + name + ".csv", index=False)
+                    df.to_csv(directory + "/csv/" + name + ".csv", index=False)
                 f.write(df.describe().to_string())
                 globalTracker.stop()
                 gcsvf = pd.read_csv("gemissions.csv")
