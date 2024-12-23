@@ -22,15 +22,15 @@ set_precision(precision)
 kfold = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=N, random_state=42)
 networks = [None, "conv"]
 datasets = [
-    "colon",
     "leukemia", 
     "lung", 
-    "lymphoma", 
+    "lymphoma",
+    "colon",
 
-    "dexter", 
+    # "dexter", 
     # "gina", 
-    # "gisette", 
-    # "madelon"
+    "gisette", 
+    "madelon"
 ]
 
 def decimal_range(start, stop, increment):
