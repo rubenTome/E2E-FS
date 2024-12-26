@@ -12,11 +12,11 @@ from sklearn.metrics import balanced_accuracy_score
 from torch import nn
 
 # script configuration
-factor = [.05, .1, .25, .5]
+factor = .5
 feature_importance = 0.6
 wait = 1
 k_folds = 3
-N = 20
+N = 15
 precision = sys.argv[1]
 print("Precision:", precision)
 set_precision(precision)
@@ -75,6 +75,8 @@ if __name__ == '__main__':
                     directory = "results_" + ds + "_conv/fp" + precision
                 else:
                     directory = "results_" + ds + "/fp" + precision
+                name = ds + "_a" + str(round(fi, 4)) + "_f" + str(factor) + "_fp" + precision
+                f = open(directory + "/stats/" + name + ".txt", "w")
 
                 ## LOAD DATA
                 dataset = selectedDs.load_dataset()
@@ -112,58 +114,51 @@ if __name__ == '__main__':
                         train_data = train_data[:, valid_features]
                         test_data = test_data[:, valid_features]
 
-                    total_features = int(np.prod(train_data.shape[1:]))
-                    for n_factor in factor:
-
-                        n_features_to_select = int(n_factor * total_features)
-                        print("features to select:", n_features_to_select)
-                        name = ds + "_a" + str(round(fi, 4)) + "_n" + str(n_features_to_select) + "_fp" + precision
-                        f = open(directory + "/stats/" + name + ".txt", "w")
-                        
-                        #kfold rep tracker starts monitoring here
-                        tracker = EmissionsTracker(measure_power_secs=1, log_level="critical", tracking_mode="process")
-                        tracker.start()
-                        
-                        ## LOAD E2EFSSoft model
-                        model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, feature_importance=fi, network=net)
-                        ## FIT THE SELECTION
-                        model.fit(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=2000, wait=wait)
-                        ## FINETUNE THE MODEL
-                        #model.fine_tune(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=100)
-                        
-                        #kfold rep tracker stops monitoring here
-                        tracker.stop()
-                        csvf = pd.read_csv("emissions.csv")
-                        emissions = csvf["emissions"].values[0]
-                        duration = csvf["duration"].values[0]
-                        
-                        ## GET THE MODEL RESULTS
-                        metrics = model.evaluate(test_data, test_label)
-                        print(metrics)
-                        predicted = model.predict(test_data)
-                        predicted = [np.argmax(i) for i in predicted]
-                        balanced_acc = balanced_accuracy_score(predicted, test_label)
-                        print("BALANCED ACCURACY:", balanced_acc)
-                        ## GET THE MASK
-                        mask = model.get_mask()
-                        print('MASK:', mask)
-                        ## GET THE RANKING
-                        ranking = model.get_ranking()
-                        print('RANKING:', ranking)
-                        nf = model.get_nfeats()
-                        print("NUMBER OF FEATURES:", nf)
-                        print("ALPHA MAX:", fi)
-                        
-                        #discard first k_fold rep
-                        if j > 0:
-                            df.loc[j] = [round(metrics["test_accuracy"], 4), round(balanced_acc, 4), nf, fi, emissions, duration]
-                        os.remove("emissions.csv")
-                        df.to_csv(directory + "/csv/" + name + ".csv", index=False)
+                    n_features_to_select = int(factor * int(np.prod(train_data.shape[1:])))
+                    print("features to select:", n_features_to_select)
                     
-                    #write stats and global emissions
-                    f.write(df.describe().to_string())
-                    globalTracker.stop()
-                    gcsvf = pd.read_csv("gemissions.csv")
-                    gemissions = csvf["emissions"].values[0]
-                    f.write("\nGLOBAL EMISSIONS: " + str(emissions) + " ( " + str(gemissions / (k_folds * N)) + " each execution)")
-                    os.remove("gemissions.csv")
+                    #kfold rep tracker starts monitoring here
+                    tracker = EmissionsTracker(measure_power_secs=1, log_level="critical", tracking_mode="process")
+                    tracker.start()
+                    
+                    ## LOAD E2EFSSoft model
+                    model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, feature_importance=fi, network=net)
+                    ## FIT THE SELECTION
+                    model.fit(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=2000, wait=wait)
+                    ## FINETUNE THE MODEL
+                    #model.fine_tune(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=100)
+                    
+                    #kfold rep tracker stops monitoring here
+                    tracker.stop()
+                    csvf = pd.read_csv("emissions.csv")
+                    emissions = csvf["emissions"].values[0]
+                    duration = csvf["duration"].values[0]
+                    
+                    ## GET THE MODEL RESULTS
+                    metrics = model.evaluate(test_data, test_label)
+                    print(metrics)
+                    predicted = model.predict(test_data)
+                    predicted = [np.argmax(i) for i in predicted]
+                    balanced_acc = balanced_accuracy_score(predicted, test_label)
+                    print("BALANCED ACCURACY:", balanced_acc)
+                    ## GET THE MASK
+                    mask = model.get_mask()
+                    print('MASK:', mask)
+                    ## GET THE RANKING
+                    ranking = model.get_ranking()
+                    print('RANKING:', ranking)
+                    nf = model.get_nfeats()
+                    print("NUMBER OF FEATURES:", nf)
+                    print("ALPHA MAX:", fi)
+
+                    df.loc[j] = [round(metrics["test_accuracy"], 4), round(balanced_acc, 4), nf, fi, emissions, duration]
+                    df.to_csv(directory + "/csv/" + name + ".csv", index=False)
+                    os.remove("emissions.csv")
+                    
+                #write stats and global emissions
+                f.write(df.describe().to_string())
+                globalTracker.stop()
+                gcsvf = pd.read_csv("gemissions.csv")
+                gemissions = csvf["emissions"].values[0]
+                f.write("\nGLOBAL EMISSIONS: " + str(emissions) + " ( " + str(gemissions / (k_folds * N)) + " each execution)")
+                os.remove("gemissions.csv")
