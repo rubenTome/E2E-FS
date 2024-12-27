@@ -12,7 +12,8 @@ from sklearn.metrics import balanced_accuracy_score
 from torch import nn
 
 # script configuration
-factor = .5
+factor = None #.5
+fixed_nfeat = 100
 feature_importance = 0.6
 wait = 1
 k_folds = 3
@@ -21,10 +22,10 @@ precision = sys.argv[1]
 print("Precision:", precision)
 set_precision(precision)
 kfold = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=N, random_state=42)
-networks = [None, "conv"]
+networks = [None]#, "conv"]
 datasets = [
-    "leukemia", 
-    "lung", 
+    "leukemia",
+    "lung",
     "lymphoma",
     "colon",
     # "dexter", 
@@ -32,6 +33,8 @@ datasets = [
     "gisette", 
     "madelon"
 ]
+results_dir = "final_results_" + str(time.time())
+results_f = open(results_dir, "x")
 
 def decimal_range(start, stop, increment):
     while start < stop:
@@ -72,11 +75,14 @@ if __name__ == '__main__':
                 #set up directory names and csv columns
                 df = pd.DataFrame(columns=["test_acc", "balanced_acc", "nfeat", "max_alpha", "emissions", "duration"])
                 if net == "conv":
-                    directory = "results_" + ds + "_conv/fp" + precision
+                    
+                    directory = results_dir + "/results_" + ds + "_conv/fp" + precision
                 else:
-                    directory = "results_" + ds + "/fp" + precision
+                    directory = results_dir + "/results_" + ds + "/fp" + precision
                 name = ds + "_a" + str(round(fi, 4)) + "_f" + str(factor) + "_fp" + precision
-                f = open(directory + "/stats/" + name + ".txt", "w")
+                ds_file = open(directory, "x")
+                csv_file = open(directory + "/csv/" + name + ".csv", "x")
+                f = open(directory + "/stats/" + name + ".txt", "x")
 
                 ## LOAD DATA
                 dataset = selectedDs.load_dataset()
@@ -114,7 +120,10 @@ if __name__ == '__main__':
                         train_data = train_data[:, valid_features]
                         test_data = test_data[:, valid_features]
 
-                    n_features_to_select = int(factor * int(np.prod(train_data.shape[1:])))
+                    if factor != None:
+                        n_features_to_select = int(factor * int(np.prod(train_data.shape[1:])))
+                    else:
+                        n_features_to_select = fixed_nfeat
                     print("features to select:", n_features_to_select)
                     
                     #kfold rep tracker starts monitoring here
