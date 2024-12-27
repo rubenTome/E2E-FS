@@ -10,8 +10,10 @@ from sklearn.model_selection import RepeatedStratifiedKFold
 from keras.utils import to_categorical
 from sklearn.metrics import balanced_accuracy_score
 from torch import nn
+import time
 
 # script configuration
+codecarbon_tracking = True
 factor = None #.5
 fixed_nfeat = 100
 feature_importance = 0.6
@@ -33,8 +35,7 @@ datasets = [
     "gisette", 
     "madelon"
 ]
-results_dir = "final_results_" + str(time.time())
-results_f = open(results_dir, "x")
+results_dir = "final_results"
 
 def decimal_range(start, stop, increment):
     while start < stop:
@@ -69,6 +70,12 @@ if __name__ == '__main__':
         elif ds == "madelon":
             selectedDs = madelon
             print("selected madelon dataset")
+
+        os.mkdir(results_dir + "/results_" + ds)
+        os.mkdir(results_dir + "/results_" + ds + "/fp" + precision)
+        os.mkdir(results_dir + "/results_" + ds + "/fp" + precision + "/csv")
+        os.mkdir(results_dir + "/results_" + ds + "/fp" + precision + "/stats")
+
         for net in networks:
             for fi in decimal_range(.0, feature_importance, 0.1):
                 
@@ -80,9 +87,8 @@ if __name__ == '__main__':
                 else:
                     directory = results_dir + "/results_" + ds + "/fp" + precision
                 name = ds + "_a" + str(round(fi, 4)) + "_f" + str(factor) + "_fp" + precision
-                ds_file = open(directory, "x")
-                csv_file = open(directory + "/csv/" + name + ".csv", "x")
-                f = open(directory + "/stats/" + name + ".txt", "x")
+                csv_file = open(directory + "/csv/" + name + ".csv", "w")
+                f = open(directory + "/stats/" + name + ".txt", "w")
 
                 ## LOAD DATA
                 dataset = selectedDs.load_dataset()
@@ -92,8 +98,11 @@ if __name__ == '__main__':
                 normalize = selectedDs.Normalize()
 
                 #global tracker starts monitoring here
-                globalTracker = EmissionsTracker(output_file="gemissions.csv", measure_power_secs=1, log_level="critical")
-                globalTracker.start()
+                if codecarbon_tracking:
+                    globalTracker = EmissionsTracker(output_file="gemissions.csv", measure_power_secs=1, log_level="critical")
+                    globalTracker.start()
+                else:
+                    globalTracker = time.time()
                 
                 for j, (train_index, test_index) in enumerate(kfold.split(raw_data, raw_label)):
                     print('k_fold', j, 'of', k_folds*N)
@@ -127,8 +136,11 @@ if __name__ == '__main__':
                     print("features to select:", n_features_to_select)
                     
                     #kfold rep tracker starts monitoring here
-                    tracker = EmissionsTracker(measure_power_secs=1, log_level="critical", tracking_mode="process")
-                    tracker.start()
+                    if codecarbon_tracking:
+                        tracker = EmissionsTracker(measure_power_secs=1, log_level="critical", tracking_mode="process")
+                        tracker.start()
+                    else:
+                        tracker = time.time()
                     
                     ## LOAD E2EFSSoft model
                     model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, feature_importance=fi, network=net)
@@ -138,10 +150,15 @@ if __name__ == '__main__':
                     #model.fine_tune(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=100)
                     
                     #kfold rep tracker stops monitoring here
-                    tracker.stop()
-                    csvf = pd.read_csv("emissions.csv")
-                    emissions = csvf["emissions"].values[0]
-                    duration = csvf["duration"].values[0]
+                    if codecarbon_tracking:
+                        tracker.stop()
+                        csvf = pd.read_csv("emissions.csv")
+                        emissions = csvf["emissions"].values[0]
+                        duration = csvf["duration"].values[0]
+                        os.remove("emissions.csv")
+                    else:
+                        emissions = -1
+                        duration = time.time() - tracker
                     
                     ## GET THE MODEL RESULTS
                     metrics = model.evaluate(test_data, test_label)
@@ -159,15 +176,19 @@ if __name__ == '__main__':
                     nf = model.get_nfeats()
                     print("NUMBER OF FEATURES:", nf)
                     print("ALPHA MAX:", fi)
-
-                    df.loc[j] = [round(metrics["test_accuracy"], 4), round(balanced_acc, 4), nf, fi, emissions, duration]
-                    df.to_csv(directory + "/csv/" + name + ".csv", index=False)
-                    os.remove("emissions.csv")
+                    if j > 0:
+                        df.loc[j] = [round(metrics["test_accuracy"], 4), round(balanced_acc, 4), nf, fi, emissions, duration]
+                        df.to_csv(directory + "/csv/" + name + ".csv", index=False)
                     
                 #write stats and global emissions
                 f.write(df.describe().to_string())
-                globalTracker.stop()
-                gcsvf = pd.read_csv("gemissions.csv")
-                gemissions = csvf["emissions"].values[0]
-                f.write("\nGLOBAL EMISSIONS: " + str(emissions) + " ( " + str(gemissions / (k_folds * N)) + " each execution)")
-                os.remove("gemissions.csv")
+                if codecarbon_tracking:
+                    globalTracker.stop()
+                    gcsvf = pd.read_csv("gemissions.csv")
+                    gemissions = csvf["emissions"].values[0]
+                    f.write("\nGLOBAL EMISSIONS: " + str(emissions) + " ( " + str(gemissions / (k_folds * N)) + " each execution)")
+                    os.remove("gemissions.csv")
+                else:
+                    globalTracker = time.time() - globalTracker
+                    f.write("\nGLOBAL EMISSIONS: " + str(globalTracker) + " ( " + str(globalTracker / (k_folds * N)) + " each execution)")
+
