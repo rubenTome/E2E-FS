@@ -36,6 +36,8 @@ datasets = [
     "madelon"
 ]
 results_dir = "final_results"
+if not os.path.exists(results_dir):
+    os.mkdir(results_dir)
 
 def decimal_range(start, stop, increment):
     while start < stop:
@@ -71,7 +73,8 @@ if __name__ == '__main__':
             selectedDs = madelon
             print("selected madelon dataset")
 
-        os.mkdir(results_dir + "/results_" + ds)
+        if not os.path.exists(results_dir + "/results_" + ds):
+            os.mkdir(results_dir + "/results_" + ds)
         os.mkdir(results_dir + "/results_" + ds + "/fp" + precision)
         os.mkdir(results_dir + "/results_" + ds + "/fp" + precision + "/csv")
         os.mkdir(results_dir + "/results_" + ds + "/fp" + precision + "/stats")
