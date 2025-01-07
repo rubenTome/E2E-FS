@@ -20,11 +20,11 @@ class LinearModel(nn.Module):
 
 class Conv1dModel(nn.Module):
 
-    def __init__(self, input_dim: int, output_dim: int) -> None:
+    def __init__(self, input_dim: int, output_dim: int, n_features: int) -> None:
         super(Conv1dModel, self).__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
-        self.model = nn.Sequential(nn.Conv1d(1, output_dim, 2000))
+        self.model = nn.Sequential(nn.Conv1d(1, output_dim, n_features))
 
     def forward(self, x):
         return self.model(x).reshape(self.model(x).shape[:-1])

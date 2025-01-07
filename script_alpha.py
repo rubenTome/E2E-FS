@@ -26,14 +26,14 @@ set_precision(precision)
 kfold = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=N, random_state=42)
 networks = ["conv"]
 datasets = [
-    # "leukemia",
+    "leukemia",
     # "lung",
     # "lymphoma",
-    "colon",
+    # "colon",
     # "dexter", 
     # "gina", 
-    "gisette", 
-    "madelon"
+    # "gisette", 
+    # "madelon"
 ]
 results_dir = "final_results_gorry"
 if not os.path.exists(results_dir):
@@ -74,11 +74,11 @@ if __name__ == '__main__':
             print("selected madelon dataset")
 
         for net in networks:
-            if not os.path.exists(results_dir + "/results_" + ds + "_" + net):
-                os.mkdir(results_dir + "/results_" + ds + "_" + net)
-            os.mkdir(results_dir + "/results_" + ds + "_" + net + "/fp" + precision)
-            os.mkdir(results_dir + "/results_" + ds + "_" + net + "/fp" + precision + "/csv")
-            os.mkdir(results_dir + "/results_" + ds + "_" + net + "/fp" + precision + "/stats")
+#            if not os.path.exists(results_dir + "/results_" + ds + "_" + net):
+#                os.mkdir(results_dir + "/results_" + ds + "_" + net)
+#            os.mkdir(results_dir + "/results_" + ds + "_" + net + "/fp" + precision)
+#            os.mkdir(results_dir + "/results_" + ds + "_" + net + "/fp" + precision + "/csv")
+#            os.mkdir(results_dir + "/results_" + ds + "_" + net + "/fp" + precision + "/stats")
 
             for fi in decimal_range(.0, feature_importance, 0.1):
                 

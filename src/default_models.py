@@ -40,7 +40,7 @@ class DefaultClassifier(pl.LightningModule):
         elif self.architecture == 'three_layer_nn':
             return networks.ThreeLayerNNModel(np.prod(self.input_shape), self.output_size)
         elif self.architecture == "conv":
-            return networks.Conv1dModel(np.prod(self.input_shape), self.output_size)
+            return networks.Conv1dModel(np.prod(self.input_shape), self.output_size, self.input_shape[1])
 
     def forward(self, x):
         # in lightning, forward defines the prediction/inference actions
