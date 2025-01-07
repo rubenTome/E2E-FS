@@ -3,9 +3,14 @@ from typing import Optional, Any
 import lightning as pl
 import torch
 from .layers import E2EFSMaskBase
-from .precision import FP_PRECISION
+import sys
 
-torch.set_default_dtype(FP_PRECISION)
+if sys.argv[1] == "16":
+    torch.set_default_dtype(torch.float16)
+if sys.argv[1] == "32":
+    torch.set_default_dtype(torch.float32)
+if sys.argv[1] == "64":
+    torch.set_default_dtype(torch.float64)
 
 
 class E2EFSModel(pl.LightningModule):

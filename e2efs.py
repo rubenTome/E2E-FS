@@ -7,10 +7,16 @@ import lightning as pl
 from copy import deepcopy
 from src.dataloaders import FastTensorDataLoader
 from src.callbacks import MyEarlyStopping
-from src.precision import FP_PRECISION
+import sys
 
-torch.set_default_dtype(FP_PRECISION)
+if sys.argv[1] == "16":
+    torch.set_default_dtype(torch.float16)
+if sys.argv[1] == "32":
+    torch.set_default_dtype(torch.float32)
+if sys.argv[1] == "64":
+    torch.set_default_dtype(torch.float64)
 
+print("IN E2EFS FILE, SELECTED PRECISION:", torch.get_default_dtype())
 
 class E2EFSBase:
 

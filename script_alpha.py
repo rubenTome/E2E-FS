@@ -5,7 +5,6 @@ import pandas as pd
 from codecarbon import EmissionsTracker
 import os
 import sys
-from src.precision import set_precision
 from sklearn.model_selection import RepeatedStratifiedKFold
 from keras.utils import to_categorical
 from sklearn.metrics import balanced_accuracy_score
@@ -21,8 +20,9 @@ wait = 1
 k_folds = 3
 N = 15
 precision = sys.argv[1]
+if precision not in ["16", "32", "64"]:
+    raise ValueError("Invalid precision: 16, 32 or 64 supported")
 print("Precision:", precision)
-set_precision(precision)
 kfold = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=N, random_state=42)
 networks = ["conv"]
 datasets = [

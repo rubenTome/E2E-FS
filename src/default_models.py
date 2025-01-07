@@ -5,9 +5,14 @@ from . import networks
 from torch import nn
 import torch
 import numpy as np
-from .precision import FP_PRECISION
+import sys
 
-torch.set_default_dtype(FP_PRECISION)
+if sys.argv[1] == "16":
+    torch.set_default_dtype(torch.float16)
+if sys.argv[1] == "32":
+    torch.set_default_dtype(torch.float32)
+if sys.argv[1] == "64":
+    torch.set_default_dtype(torch.float64)
 
 
 class DefaultClassifier(pl.LightningModule):
