@@ -10,6 +10,7 @@ from keras.utils import to_categorical
 from sklearn.metrics import balanced_accuracy_score
 from torch import nn
 import time
+import torch
 
 # script configuration
 codecarbon_tracking = True
@@ -35,6 +36,14 @@ datasets = [
     # "gisette", 
     "madelon"
 ]
+
+if sys.argv[1] == "16":
+    torch.set_default_dtype(torch.float16)
+if sys.argv[1] == "32":
+    torch.set_default_dtype(torch.float32)
+if sys.argv[1] == "64":
+    torch.set_default_dtype(torch.float64)
+
 results_dir = "final_results_gorry"
 if not os.path.exists(results_dir):
     os.mkdir(results_dir)
