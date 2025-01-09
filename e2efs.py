@@ -35,7 +35,7 @@ class E2EFSBase:
         self.regularization = regularization
 
     def __build_mask__(self, input_shape):
-        return getattr(layers, self.mask_name)(input_shape=input_shape, n_features_to_select=self.n_features_to_select)
+        return getattr(layers, self.mask_name)(input_shape=input_shape, n_features_to_select=self.n_features_to_select, feature_importance=self.feature_importance)
 
     def __build_model__(self, X, y):
         input_shape = X.shape[1:]
@@ -122,14 +122,14 @@ class E2EFSBase:
         self.model.fitted = True
         return self
 
-    def fit(self, X, y, validation_data=None, batch_size=32, max_epochs=500, verbose=True, wait=1):
+    def fit(self, X, y, validation_data=None, batch_size=32, max_epochs=500, verbose=True):
         self.task = self.__select_default_task(X, y)
         self.model = self.__build_model__(X, y)
         trainer_opts = {
             'callbacks': [
                 MyEarlyStopping(
                     monitor="nfeats", mode="min", min_delta=0, stopping_threshold=self.n_features_to_select + 1,
-                    patience=1000, feature_importance=self.feature_importance, wait=wait
+                    patience=1000, feature_importance=self.feature_importance
                 )
             ],
             'enable_checkpointing': False,

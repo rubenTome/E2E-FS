@@ -16,7 +16,7 @@ if sys.argv[1] == "64":
 
 class E2EFSMaskBase(nn.Module):
 
-    def __init__(self, input_shape, n_features_to_select,
+    def __init__(self, input_shape, n_features_to_select, feature_importance,
                  heatmap_momentum=.99999,
                  epsilon=1e-8,
                  device=None, dtype=None):
@@ -31,6 +31,7 @@ class E2EFSMaskBase(nn.Module):
         self.register_buffer('moving_factor', torch.tensor(0., **factory_kwargs))
         self.heatmap_momentum = heatmap_momentum
         self.n_features_to_select = n_features_to_select
+        self.feature_importance = feature_importance
 
     def forward(self, x):
         output = x * self.kernel_activation()
@@ -39,11 +40,12 @@ class E2EFSMaskBase(nn.Module):
     def update_buffers(self):
         self.heatmap = self.heatmap_momentum * self.heatmap + (1. - self.heatmap_momentum) * torch.sign(self.kernel_activation())
         self.moving_T = self.moving_T + 1
-        self.moving_factor = torch.where(
-            torch.less(self.moving_T, self.warmup_T),
-            self.start_alpha,
-            (self.start_alpha + (1. - self.start_alpha) * (self.moving_T - self.warmup_T) / self.T).clamp(max=self.alpha_M)
-        )
+        if (self.moving_factor < self.feature_importance):
+            self.moving_factor = torch.where(
+                torch.less(self.moving_T, self.warmup_T),
+                self.start_alpha,
+                (self.start_alpha + (1. - self.start_alpha) * (self.moving_T - self.warmup_T) / self.T).clamp(max=self.alpha_M)
+            )
 
     def get_penalty(self):
         x = self.kernel
@@ -79,7 +81,7 @@ class E2EFSMaskBase(nn.Module):
 
 class E2EFSSoftMask(E2EFSMaskBase):
 
-    def __init__(self, input_shape, n_features_to_select,
+    def __init__(self, input_shape, n_features_to_select, feature_importance,
                  decay_factor=.75,
                  T=20000,
                  warmup_T=2000,
@@ -96,6 +98,7 @@ class E2EFSSoftMask(E2EFSMaskBase):
         self.alpha_M = alpha_N
         super(E2EFSSoftMask, self).__init__(input_shape=input_shape,
                                         n_features_to_select=n_features_to_select,
+                                        feature_importance=feature_importance,
                                         heatmap_momentum=(T - 1.) / T,
                                         epsilon=epsilon,
                                         device=device, dtype=dtype)

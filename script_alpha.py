@@ -15,26 +15,25 @@ import torch
 # script configuration
 codecarbon_tracking = True
 factor = None #.5
-fixed_nfeat = 100
+fixed_nfeat = 10
 feature_importance = 0.6
-wait = 1
 k_folds = 3
-N = 15
+N = 10
 precision = sys.argv[1]
 if precision not in ["16", "32", "64"]:
     raise ValueError("Invalid precision: 16, 32 or 64 supported")
 print("Precision:", precision)
 kfold = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=N, random_state=42)
-networks = [None]
+networks = [None, "conv"]
 datasets = [
-    #"leukemia",
+    "leukemia",
     "lung",
     "lymphoma",
-    # "colon",
+    "colon",
     "dexter", 
-    # "gina", 
-    # "gisette", 
-    "madelon"
+    "gina", 
+    "gisette", 
+    #"madelon" #para este solo 5 caracteristicas
 ]
 
 if sys.argv[1] == "16":
@@ -95,7 +94,7 @@ if __name__ == '__main__':
             os.mkdir(results_dir + "/results_" + ds + netStr + "/fp" + precision + "/csv")
             os.mkdir(results_dir + "/results_" + ds + netStr + "/fp" + precision + "/stats")
 
-            for fi in decimal_range(.0, feature_importance, 0.1):
+            for fi in decimal_range(.1, feature_importance, 0.1):
                 
                 #set up directory names and csv columns
                 df = pd.DataFrame(columns=["test_acc", "balanced_acc", "nfeat", "max_alpha", "emissions", "duration"])
@@ -163,7 +162,7 @@ if __name__ == '__main__':
                     ## LOAD E2EFSSoft model
                     model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, feature_importance=fi, network=net)
                     ## FIT THE SELECTION
-                    model.fit(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=2000, wait=wait)
+                    model.fit(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=2000)
                     ## FINETUNE THE MODEL
                     #model.fine_tune(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=100)
                     
