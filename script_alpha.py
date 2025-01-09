@@ -25,9 +25,9 @@ if precision not in ["16", "32", "64"]:
     raise ValueError("Invalid precision: 16, 32 or 64 supported")
 print("Precision:", precision)
 kfold = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=N, random_state=42)
-networks = ["conv"]
+networks = [None]
 datasets = [
-    "leukemia",
+    #"leukemia",
     "lung",
     "lymphoma",
     # "colon",
@@ -39,6 +39,8 @@ datasets = [
 
 if sys.argv[1] == "16":
     torch.set_default_dtype(torch.float16)
+if sys.argv[1] == "b16":
+    torch.set_default_dtype(torch.bfloat16)
 if sys.argv[1] == "32":
     torch.set_default_dtype(torch.float32)
 if sys.argv[1] == "64":
@@ -83,11 +85,15 @@ if __name__ == '__main__':
             print("selected madelon dataset")
 
         for net in networks:
-            if not os.path.exists(results_dir + "/results_" + ds + "_" + net):
-                os.mkdir(results_dir + "/results_" + ds + "_" + net)
-            os.mkdir(results_dir + "/results_" + ds + "_" + net + "/fp" + precision)
-            os.mkdir(results_dir + "/results_" + ds + "_" + net + "/fp" + precision + "/csv")
-            os.mkdir(results_dir + "/results_" + ds + "_" + net + "/fp" + precision + "/stats")
+            if net == None:
+                netStr = ""
+            else:
+                netStr = "_" + net
+            if not os.path.exists(results_dir + "/results_" + ds + netStr):
+                os.mkdir(results_dir + "/results_" + ds + netStr)
+            os.mkdir(results_dir + "/results_" + ds + netStr + "/fp" + precision)
+            os.mkdir(results_dir + "/results_" + ds + netStr + "/fp" + precision + "/csv")
+            os.mkdir(results_dir + "/results_" + ds + netStr + "/fp" + precision + "/stats")
 
             for fi in decimal_range(.0, feature_importance, 0.1):
                 
