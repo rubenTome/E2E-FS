@@ -18,11 +18,9 @@ if sys.argv[1] == "32":
 if sys.argv[1] == "64":
     torch.set_default_dtype(torch.float64)
 
-print("IN E2EFS FILE, SELECTED PRECISION:", torch.get_default_dtype())
-
 class E2EFSBase:
 
-    def __init__(self, n_features_to_select, feature_importance, network=None, mask_name='E2EFSSoftMask', precision='32',
+    def __init__(self, n_features_to_select, feature_importance, precision, network=None, mask_name='E2EFSSoftMask',
                  balanced=True, regularization='default'):
         self.n_features_to_select = n_features_to_select
         self.feature_importance = feature_importance

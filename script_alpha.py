@@ -18,7 +18,7 @@ factor = None #.5
 fixed_nfeat = 10
 feature_importance = 0.6
 k_folds = 3
-N = 10
+N = 9
 precision = sys.argv[1]
 if precision not in ["16", "32", "64"]:
     raise ValueError("Invalid precision: 16, 32 or 64 supported")
@@ -160,7 +160,7 @@ if __name__ == '__main__':
                         tracker = time.time()
                     
                     ## LOAD E2EFSSoft model
-                    model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, feature_importance=fi, network=net)
+                    model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, feature_importance=fi, precision="16", network=net)
                     ## FIT THE SELECTION
                     model.fit(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=2000)
                     ## FINETUNE THE MODEL
