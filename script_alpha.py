@@ -160,7 +160,7 @@ if __name__ == '__main__':
                         tracker = time.time()
                     
                     ## LOAD E2EFSSoft model
-                    model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, feature_importance=fi, precision="16", network=net)
+                    model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, feature_importance=fi, precision=sys.argv[1], network=net)
                     ## FIT THE SELECTION
                     model.fit(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=2000)
                     ## FINETUNE THE MODEL
