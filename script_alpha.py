@@ -12,28 +12,34 @@ import torch
 
 # script configuration
 codecarbon_tracking = True
+#numero de caracteristicas objetivo
 n_features_to_select = 10
+#epochs maximas sin reducir el numero de caracteristicas
 wait = 25
-initial_feature_importance = 0.1
-feature_importance_step = 0.1
+#alfa inicial, step y final
+initial_feature_importance = 0.05
+feature_importance_step = 0.05
 feature_importance = 0.6
 k_folds = 3
+#numero de repeticiones por experimento
 N = 10
-precision = sys.argv[1]
+#se usa o no precision mixta al ejecutar python3 sript_alpha.py 16
 amp_prec = False
-kfold = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=N, random_state=42)
+#implementacion del clasificador
 networks = [None, "conv"]
 datasets = [
-    #"leukemia",
-    #"lung",
-    #"lymphoma",
-    #"colon",
-    #"dexter", 
-    #"gina", 
+    "leukemia",
+    "lung",
+    "lymphoma",
+    "colon",
+    "dexter", 
+    "gina", 
     "gisette", 
     #"madelon" #para este solo 5 caracteristicas
 ]
 results_dir = "final_results_gorry"
+
+precision = sys.argv[1]
 
 if not os.path.exists(results_dir):
     os.mkdir(results_dir)
@@ -57,6 +63,7 @@ def decimal_range(start, stop, increment):
 
 if __name__ == '__main__':
     print("Precision:", precision)
+    kfold = RepeatedStratifiedKFold(n_splits=k_folds, n_repeats=N, random_state=42)
     #select dataset
     for ds in datasets:
         if ds == "colon":
