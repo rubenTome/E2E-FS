@@ -4,7 +4,8 @@ import e2efs
 
 
 n_features_to_select = 10
-feature_importance = 0.25
+feature_importance = 0.3
+precision = '16-true'
 
 if __name__ == '__main__':
 
@@ -21,7 +22,7 @@ if __name__ == '__main__':
     test_data = normalize.transform(test_data)
 
     ## LOAD E2EFSSoft model
-    model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, feature_importance=feature_importance)
+    model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, feature_importance=feature_importance, precision=precision)
 
     ## OPTIONAL: Load E2EFS Model
     # model = e2efs.E2EFS(n_features_to_select=n_features_to_select)

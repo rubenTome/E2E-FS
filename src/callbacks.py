@@ -1,11 +1,5 @@
 import lightning as pl
-import torch
-import sys
-
-if sys.argv[1] == "16":
-    torch.set_float32_matmul_precision("high")
-if sys.argv[1] == "64":
-    torch.set_default_dtype(torch.float64)
+import math
 
 
 class MyEarlyStopping(pl.pytorch.callbacks.EarlyStopping):
@@ -29,7 +23,7 @@ class MyEarlyStopping(pl.pytorch.callbacks.EarlyStopping):
         else:
             self.wait_counter = 0
         self.nfeats = nfeats
-        alpha = pl_module.e2efs_layer.moving_factor
-        if nfeats < self.stopping_threshold or self.wait_counter >= self.wait:
+        alpha = pl_module.e2efs_layer.get_factor().item()
+        if math.isclose(alpha, self.feature_importance, abs_tol=1e-3) and (nfeats < self.stopping_threshold or self.wait_counter >= self.wait):
             trainer.should_stop = True
         print('\tnfeats {} (threshold {}) alpha {:.4f} (threshold {})'.format(nfeats, self.stopping_threshold, alpha, self.feature_importance))

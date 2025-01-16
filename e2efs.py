@@ -7,16 +7,11 @@ import lightning as pl
 from copy import deepcopy
 from src.dataloaders import FastTensorDataLoader
 from src.callbacks import MyEarlyStopping
-import sys
 
-if sys.argv[1] == "16":
-    torch.set_float32_matmul_precision("high")
-if sys.argv[1] == "64":
-    torch.set_default_dtype(torch.float64)
 
 class E2EFSBase:
 
-    def __init__(self, n_features_to_select, feature_importance, wait, precision, network=None, mask_name='E2EFSSoftMask',
+    def __init__(self, n_features_to_select, feature_importance=.1, wait=10, precision='32', network=None, mask_name='E2EFSSoftMask',
                  balanced=True, regularization='default'):
         self.n_features_to_select = n_features_to_select
         self.feature_importance = feature_importance
@@ -30,7 +25,8 @@ class E2EFSBase:
         self.regularization = regularization
 
     def __build_mask__(self, input_shape):
-        return getattr(layers, self.mask_name)(input_shape=input_shape, n_features_to_select=self.n_features_to_select, feature_importance=self.feature_importance)
+        return getattr(layers, self.mask_name)(input_shape=input_shape, n_features_to_select=self.n_features_to_select,
+                                               feature_importance=self.feature_importance, epsilon=1e-3 if '16' in self.precision else 1e-8)
 
     def __build_model__(self, X, y):
         input_shape = X.shape[1:]
@@ -52,7 +48,7 @@ class E2EFSBase:
             reg = self.__select_default_regularization(architecture, X) if self.regularization == 'default' else self.regularization
             default_model = default_models.DefaultRegressor if self.task == 'regression' else default_models.DefaultClassifier
             network_model = default_model(input_shape=input_shape, output_size=output_size, architecture=architecture, regularization=reg)
-        return E2EFSModel(network=network_model, e2efs_layer=mask)
+        return E2EFSModel(network=network_model, e2efs_layer=mask, epsilon=1e-3 if '16' in self.precision else 1e-8)
 
     def __select_default_architecture(self, X, y):
         nsamples, nfeats = len(X), np.prod(X.shape[1:])

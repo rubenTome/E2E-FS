@@ -1,13 +1,6 @@
 import torch
 from torch import nn
 import numpy as np
-import sys
-
-if sys.argv[1] == "16":
-    torch.set_float32_matmul_precision("high")
-if sys.argv[1] == "64":
-    torch.set_default_dtype(torch.float64)
-
 
 
 class E2EFSMaskBase(nn.Module):
@@ -25,6 +18,7 @@ class E2EFSMaskBase(nn.Module):
         self.register_buffer('moving_units', torch.tensor(n_features_to_select, **factory_kwargs))
         self.register_buffer('moving_T', torch.tensor(0., **factory_kwargs))
         self.register_buffer('moving_factor', torch.tensor(0., **factory_kwargs))
+        self.register_buffer('moving_factor_aux', torch.tensor(0., **factory_kwargs))
         self.heatmap_momentum = heatmap_momentum
         self.n_features_to_select = n_features_to_select
         self.feature_importance = feature_importance
@@ -37,11 +31,19 @@ class E2EFSMaskBase(nn.Module):
         self.heatmap = self.heatmap_momentum * self.heatmap + (1. - self.heatmap_momentum) * torch.sign(self.kernel_activation())
         self.moving_T = self.moving_T + 1
         if (self.moving_factor < self.feature_importance):
+            moving_factor = self.moving_factor
             self.moving_factor = torch.where(
                 torch.less(self.moving_T, self.warmup_T),
                 self.start_alpha,
-                (self.start_alpha + (1. - self.start_alpha) * (self.moving_T - self.warmup_T) / self.T).clamp(max=self.alpha_M)
+                self.moving_factor + self.feature_importance / self.T
+                # (self.start_alpha + (1. - self.start_alpha) * self.feature_importance * (self.moving_T - self.warmup_T) / self.T)
             )
+            if moving_factor == self.moving_factor:
+                self.moving_factor_aux = self.moving_factor_aux + self.moving_factor
+                self.moving_factor *= 0.
+
+    def get_factor(self):
+        return (self.moving_factor + self.moving_factor_aux).clamp(max=self.feature_importance)
 
     def get_penalty(self):
         x = self.kernel
@@ -79,7 +81,7 @@ class E2EFSSoftMask(E2EFSMaskBase):
 
     def __init__(self, input_shape, n_features_to_select, feature_importance,
                  decay_factor=.75,
-                 T=20000,
+                 T=2000,
                  warmup_T=2000,
                  start_alpha=.0,
                  alpha_N=.99,
@@ -104,7 +106,7 @@ class E2EFSSoftMask(E2EFSMaskBase):
     def update_buffers(self):
         super(E2EFSSoftMask, self).update_buffers()
         self.moving_decay = torch.where(
-            torch.less(self.moving_factor, self.alpha_M),
+            torch.less(self.get_factor(), self.alpha_M),
             self.moving_decay,
             (self.moving_decay + self.epsilon).clamp(min=.75)
         )
@@ -118,7 +120,7 @@ class E2EFSMask(E2EFSSoftMask):
         super(E2EFSMask, self).__init__(input_shape=input_shape,
                                     n_features_to_select=n_features_to_select,
                                     decay_factor=0.,
-                                    T=10000, device=device, dtype=dtype)
+                                    T=1000, device=device, dtype=dtype)
 
 
 class E2EFSRamkingMask(E2EFSSoftMask):
@@ -130,7 +132,7 @@ class E2EFSRamkingMask(E2EFSSoftMask):
         super(E2EFSRamkingMask, self).__init__(input_shape=input_shape,
                                     n_features_to_select=n_features_to_select,
                                     decay_factor=0.,
-                                    T=20000, device=device, dtype=dtype)
+                                    T=2000, device=device, dtype=dtype)
         self.register_buffer('speedup', torch.tensor(speedup, device=device, dtype=dtype))
 
     def update_buffers(self):

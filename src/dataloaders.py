@@ -1,10 +1,4 @@
 import torch
-import sys
-
-if sys.argv[1] == "16":
-    torch.set_float32_matmul_precision("high")
-if sys.argv[1] == "64":
-    torch.set_default_dtype(torch.float64)
 
 class FastTensorDataLoader:
     """

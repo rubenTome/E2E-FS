@@ -3,18 +3,12 @@ from typing import Optional, Any
 import lightning as pl
 import torch
 from .layers import E2EFSMaskBase
-import sys
-
-if sys.argv[1] == "16":
-    torch.set_float32_matmul_precision("high")
-if sys.argv[1] == "64":
-    torch.set_default_dtype(torch.float64)
 
 
 class E2EFSModel(pl.LightningModule):
 
     def __init__(self, network: pl.LightningModule, e2efs_layer: E2EFSMaskBase,
-                 epsilon: float = 1e-8, threshold: float = 1.):
+                 epsilon: float = 1e-3, threshold: float = 1.):
         super(E2EFSModel, self).__init__()
         self.network = network
         self.e2efs_layer = e2efs_layer
@@ -30,7 +24,7 @@ class E2EFSModel(pl.LightningModule):
         return output
 
     def __combine_grads(self, network_grad, e2efs_grad):
-        alpha = self.e2efs_layer.moving_factor
+        alpha = self.e2efs_layer.get_factor()
         network_grad_norm = torch.norm(network_grad) + self.epsilon
         e2efs_grad_normalized = e2efs_grad / (torch.norm(e2efs_grad) + self.epsilon)
         network_grad_normalized = network_grad / network_grad_norm
@@ -59,7 +53,7 @@ class E2EFSModel(pl.LightningModule):
             penalty_grad = self.e2efs_layer.kernel.grad
             self.e2efs_layer.kernel.grad = self.__combine_grads(network_grad, penalty_grad)
             e2efs_opt.step()
-            self.log_dict({"alpha": self.e2efs_layer.moving_factor, "penalty": penalty}, prog_bar=True)
+            self.log_dict({"alpha": self.e2efs_layer.get_factor(), "penalty": penalty}, prog_bar=True)
         network_opt.step()
         self.e2efs_layer.kernel_constraint()
         # loss = F.cross_entropy(y_hat, y) # - 1e-4*torch.sum(s * torch.log(s_clip))
@@ -84,7 +78,7 @@ class E2EFSModel(pl.LightningModule):
 
     def configure_optimizers(self):
         network_opt = self.network.configure_optimizers()
-        e2efs_opt = torch.optim.Adam(self.e2efs_layer.parameters(), lr=1e-3 if self.fitted else 1e-3)
+        e2efs_opt = torch.optim.Adam(self.e2efs_layer.parameters(), lr=1e-3 if self.fitted else 1e-3, eps=self.epsilon)
         # e2efs_opt = torch.optim.SGD(self.e2efs_layer.parameters(), lr=.01)
         callbacks = []
         if self.fitted:
