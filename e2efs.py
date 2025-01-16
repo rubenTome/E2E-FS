@@ -10,20 +10,17 @@ from src.callbacks import MyEarlyStopping
 import sys
 
 if sys.argv[1] == "16":
-    torch.set_default_dtype(torch.float16)
-if sys.argv[1] == "b16":
-    torch.set_default_dtype(torch.bfloat16)
-if sys.argv[1] == "32":
-    torch.set_default_dtype(torch.float32)
+    torch.set_float32_matmul_precision("high")
 if sys.argv[1] == "64":
     torch.set_default_dtype(torch.float64)
 
 class E2EFSBase:
 
-    def __init__(self, n_features_to_select, feature_importance, precision, network=None, mask_name='E2EFSSoftMask',
+    def __init__(self, n_features_to_select, feature_importance, wait, precision, network=None, mask_name='E2EFSSoftMask',
                  balanced=True, regularization='default'):
         self.n_features_to_select = n_features_to_select
         self.feature_importance = feature_importance
+        self.wait = wait
         self.network = network
         self.model = None
         self.mask_name = mask_name
@@ -127,7 +124,7 @@ class E2EFSBase:
             'callbacks': [
                 MyEarlyStopping(
                     monitor="nfeats", mode="min", min_delta=0, stopping_threshold=self.n_features_to_select + 1,
-                    patience=1000, feature_importance=self.feature_importance
+                    patience=1000, feature_importance=self.feature_importance, wait=self.wait
                 )
             ],
             'enable_checkpointing': False,

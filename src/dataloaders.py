@@ -2,11 +2,7 @@ import torch
 import sys
 
 if sys.argv[1] == "16":
-    torch.set_default_dtype(torch.float16)
-if sys.argv[1] == "b16":
-    torch.set_default_dtype(torch.bfloat16)
-if sys.argv[1] == "32":
-    torch.set_default_dtype(torch.float32)
+    torch.set_float32_matmul_precision("high")
 if sys.argv[1] == "64":
     torch.set_default_dtype(torch.float64)
 
