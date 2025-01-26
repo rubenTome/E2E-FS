@@ -8,7 +8,6 @@ import sys
 from sklearn.model_selection import RepeatedStratifiedKFold
 from sklearn.metrics import balanced_accuracy_score
 import time
-import torch
 
 # script configuration
 codecarbon_tracking = True
@@ -19,12 +18,10 @@ wait = 25
 #alfa inicial, step y final
 initial_feature_importance = 0.05
 feature_importance_step = 0.05
-feature_importance = 0.6
+feature_importance = 0.3
 k_folds = 3
 #numero de repeticiones por experimento
-N = 10
-#se usa o no precision mixta al ejecutar python3 sript_alpha.py 16
-amp_prec = False
+N = 5
 #implementacion del clasificador
 networks = [None, "conv"]
 datasets = [
@@ -33,7 +30,7 @@ datasets = [
     "lymphoma",
     "colon",
     "dexter", 
-    "gina", 
+    #"gina", #accuracy demasiado baja
     "gisette", 
     #"madelon" #para este solo 5 caracteristicas
 ]
@@ -43,18 +40,6 @@ precision = sys.argv[1]
 
 if not os.path.exists(results_dir):
     os.mkdir(results_dir)
-
-p = sys.argv[1]
-if sys.argv[1] == "16":
-    if amp_prec:
-        p = "16-mixed"
-        precision = "16-mixed"
-    else:
-        torch.set_float32_matmul_precision("high")
-        p = "32"
-        precision = "32-matmul-opt-high"
-if sys.argv[1] == "64":
-    torch.set_default_dtype(torch.float64)
 
 def decimal_range(start, stop, increment):
     while start < stop:
@@ -121,13 +106,6 @@ if __name__ == '__main__':
                 raw_label = np.asarray(dataset['raw']['label']).reshape(-1)
                 num_classes = len(np.unique(raw_label))
                 normalize = selectedDs.Normalize()
-
-                #global tracker starts monitoring here
-                if codecarbon_tracking:
-                    globalTracker = EmissionsTracker(output_file="gemissions.csv", measure_power_secs=1, log_level="critical")
-                    globalTracker.start()
-                else:
-                    globalTracker = time.time()
                 
                 for j, (train_index, test_index) in enumerate(kfold.split(raw_data, raw_label)):
                     print('k_fold', j, 'of', k_folds*N)
@@ -167,7 +145,7 @@ if __name__ == '__main__':
                         tracker = time.time()
                     
                     ## LOAD E2EFSSoft model
-                    model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, wait=wait, feature_importance=fi, precision=p, network=net)
+                    model = e2efs.E2EFSSoft(n_features_to_select=n_features_to_select, wait=wait, feature_importance=fi, precision=precision, network=net)
                     ## FIT THE SELECTION
                     model.fit(train_data, train_label, validation_data=(test_data, test_label), batch_size=2, max_epochs=2000)
                     ## FINETUNE THE MODEL
@@ -206,13 +184,3 @@ if __name__ == '__main__':
                     
                 #write stats and global emissions
                 f.write(df.describe().to_string())
-                if codecarbon_tracking:
-                    globalTracker.stop()
-                    gcsvf = pd.read_csv("gemissions.csv")
-                    gemissions = csvf["emissions"].values[0]
-                    f.write("\nGLOBAL EMISSIONS: " + str(emissions) + " ( " + str(gemissions / (k_folds * N)) + " each execution)")
-                    os.remove("gemissions.csv")
-                else:
-                    globalTracker = time.time() - globalTracker
-                    f.write("\nGLOBAL EMISSIONS: " + str(globalTracker) + " ( " + str(globalTracker / (k_folds * N)) + " each execution)")
-
