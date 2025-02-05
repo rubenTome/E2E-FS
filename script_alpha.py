@@ -23,7 +23,7 @@ k_folds = 3
 #numero de repeticiones por experimento
 N = 5
 #implementacion del clasificador
-networks = [None, "conv"]
+networks = ["conv"]
 datasets = [
     "leukemia",
     "lung",
@@ -119,18 +119,8 @@ if __name__ == '__main__':
                     #if convolutional implementation is chosen
                     if net == "conv":
                         print("SELECTED CONV IMPLEMENTATION")
-                        train_data = train_data[:, :, np.newaxis]
-                        test_data = test_data[:, :, np.newaxis]
-                        train_data = np.reshape(train_data, (train_data.shape[0], 1, train_data.shape[1]))
-                        test_data = np.reshape(test_data, (test_data.shape[0], 1, test_data.shape[1]))
                     else:
                         print("SELECTED LINEAR IMPLEMENTATION")      
-
-                    valid_features = np.where(np.abs(train_data).sum(axis=0) > 0)[0]
-                    if len(valid_features) < train_data.shape[1]:
-                        print('Removing', train_data.shape[1] - len(valid_features), 'zero features')
-                        train_data = train_data[:, valid_features]
-                        test_data = test_data[:, valid_features]
 
                     train_label = np.array(train_label).astype(int)
                     test_label = np.array(test_label).astype(int)
