@@ -13,17 +13,17 @@ class LinearModel(nn.Module):
     def forward(self, x):
         return self.model(x)
 
-
 class Conv1dModel(nn.Module):
-
-    def __init__(self, input_dim: int, output_dim: int, n_features: int) -> None:
+ 
+    def __init__(self, input_dim: int, output_dim: int) -> None:
         super(Conv1dModel, self).__init__()
         self.input_dim = input_dim
         self.output_dim = output_dim
-        self.model = nn.Sequential(nn.Conv1d(1, output_dim, n_features))
-
+        self.model = nn.Conv1d(input_dim, output_dim, 1)
+ 
     def forward(self, x):
-        return self.model(x).reshape(self.model(x).shape[:-1])
+        x_conv = torch.unsqueeze(x, -1)
+        return self.model(x_conv).squeeze(-1)
 
 class ThreeLayerNNModel(nn.Module):
 
